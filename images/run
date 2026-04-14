@@ -1,0 +1,63 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Project 1
+study_data = pd.DataFrame({
+    "Study Hours": [1, 2, 3, 4, 5, 6, 7, 8],
+    "Score": [50, 55, 65, 70, 75, 78, 85, 90],
+    "Student": ["A", "B", "C", "D", "E", "F", "G", "H"]
+})
+
+fig, ax = plt.subplots(figsize=(7, 4.5))
+ax.scatter(study_data["Study Hours"], study_data["Score"])
+for i, student in enumerate(study_data["Student"]):
+    ax.annotate(
+        student,
+        (study_data["Study Hours"][i], study_data["Score"][i]),
+        xytext=(5, 5),
+        textcoords="offset points"
+    )
+ax.set_title("Study Hours vs Exam Score")
+ax.set_xlabel("Study Hours")
+ax.set_ylabel("Exam Score")
+ax.grid(True)
+plt.tight_layout()
+plt.savefig("study_time.png", bbox_inches="tight")
+plt.close()
+
+# Project 2
+attendance_data = pd.DataFrame({
+    "Attendance Rate": [60, 65, 70, 75, 80, 85, 90, 95],
+    "Average Score": [48, 52, 58, 63, 68, 74, 81, 88]
+})
+
+fig, ax = plt.subplots(figsize=(7, 4.5))
+ax.bar(attendance_data["Attendance Rate"].astype(str), attendance_data["Average Score"])
+ax.set_title("Attendance Rate vs Average Score")
+ax.set_xlabel("Attendance Rate (%)")
+ax.set_ylabel("Average Score")
+ax.grid(axis="y")
+plt.tight_layout()
+plt.savefig("attendance.png", bbox_inches="tight")
+plt.close()
+
+# Project 3
+financial_data = pd.DataFrame({
+    "Month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    "Company A": [100, 104, 109, 112, 118, 123],
+    "Company B": [95, 97, 99, 101, 103, 106]
+})
+
+fig, ax = plt.subplots(figsize=(7, 4.5))
+ax.plot(financial_data["Month"], financial_data["Company A"], marker="o", label="Company A")
+ax.plot(financial_data["Month"], financial_data["Company B"], marker="o", label="Company B")
+ax.set_title("Financial Trend Comparison")
+ax.set_xlabel("Month")
+ax.set_ylabel("Stock Price Index")
+ax.legend()
+ax.grid(True)
+plt.tight_layout()
+plt.savefig("financial_trend.png", bbox_inches="tight")
+plt.close()
+
+print("Saved: study_time.png, attendance.png, financial_trend.png")
