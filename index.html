@@ -1,140 +1,254 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Imran Shaale Portfolio</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imran Shaale - Data Portfolio</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 40px;
-            line-height: 1.6;
-            max-width: 900px;
-        }
-        h1 {
+            margin: 40px auto;
+            line-height: 1.7;
+            max-width: 950px;
             color: #222;
+            background-color: #fafafa;
+            padding: 0 20px;
         }
+
+        h1 {
+            color: #1f1f1f;
+            margin-bottom: 10px;
+        }
+
         h2 {
-            margin-top: 30px;
-            color: #333;
+            margin-top: 0;
+            color: #2f2f2f;
         }
+
+        h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        .intro {
+            margin-bottom: 30px;
+        }
+
         .section {
             margin-bottom: 30px;
-            padding: 20px;
+            padding: 24px;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
         }
+
         ul {
-            padding-left: 20px;
+            padding-left: 22px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .project-image {
+            width: 100%;
+            max-width: 700px;
+            height: auto;
+            display: block;
+            margin: 20px auto 10px auto;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #f4f4f4;
+        }
+
+        .caption {
+            font-size: 0.95rem;
+            color: #555;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .skills-list {
+            columns: 2;
+            column-gap: 40px;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #666;
+            margin-top: 40px;
+            padding-bottom: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .skills-list {
+                columns: 1;
+            }
+
+            body {
+                margin: 20px auto;
+            }
         }
     </style>
 </head>
 <body>
 
-    <h1>Imran Shaale - Data Portfolio</h1>
-    <p>
-        This portfolio showcases my developing data literacy skills in Python,
-        data analysis, visualisation, and reproducible digital workflows.
-    </p>
+    <header class="intro">
+        <h1>Imran Shaale - Data Portfolio</h1>
+        <p>
+            This portfolio showcases my developing data literacy skills in Python, data analysis,
+            visualisation, and reproducible digital workflows.
+        </p>
+        <p>
+            It presents selected projects that demonstrate how I structure data, explore relationships
+            between variables, create visualisations, and communicate insights clearly and professionally.
+        </p>
+    </header>
 
-    <div class="section">
+    <section class="section">
         <h2>About Me</h2>
         <p>
-            I am a student building practical skills in coding, data analysis,
-            and communication. This portfolio presents examples of how I use
-            Python to explore data, create visualisations, and explain insights clearly.
+            I am a student developing practical skills in coding, data analysis, and communication.
+            This portfolio presents examples of how I use Python to work with structured datasets,
+            create visualisations, and explain insights in a clear and accessible way.
         </p>
-    </div>
+    </section>
 
-    <div class="section">
+    <section class="section">
         <h2>Skills</h2>
-        <ul>
+        <ul class="skills-list">
             <li>Python</li>
             <li>pandas</li>
             <li>matplotlib</li>
             <li>Data analysis</li>
             <li>Data visualisation</li>
             <li>GitHub and GitHub Pages</li>
+            <li>marimo notebooks</li>
+            <li>Data communication</li>
         </ul>
-    </div>
+    </section>
 
-    <div class="section">
+    <section class="section">
         <h2>Project 1: Study Time Analysis</h2>
         <p>
-            This project analyses the relationship between study hours and exam performance.
-            Using Python and matplotlib, I created a visualisation showing a positive trend
-            between study time and academic results.
+            This project investigates the relationship between study time and exam performance.
+            I structured the dataset using Python and pandas, then used matplotlib to create
+            a visualisation showing how exam scores change with study hours.
         </p>
         <p>
-            This demonstrates my ability to structure a dataset, explore relationships
-            between variables, and communicate findings in a clear visual format.
+            The chart suggests a clear positive relationship between time spent studying and academic
+            performance. This demonstrates my ability to structure data, analyse relationships between
+            variables, and communicate findings clearly through visualisation.
         </p>
-    </div>
-<div class="section">
-    <h2>Project 2: Attendance and Performance Analysis</h2>
-    <p>
-        This project explores the relationship between attendance rate and average academic performance.
-        Using Python and matplotlib, I created a bar chart to compare score outcomes across different
-        levels of attendance.
-    </p>
-    <p>
-        The visualisation suggests that stronger attendance is linked to better average results.
-        This demonstrates my ability to compare grouped data and communicate patterns clearly.
-    </p>
-</div>
-<div class="section">
-    <h2>Technical Journey</h2>
 
-    <p>
-        Throughout this module, I developed my data literacy skills progressively,
-        starting with foundational Python concepts and advancing towards more complex
-        data analysis and automation techniques.
-    </p>
+        <img src="images/study_time.png" alt="Study Time Analysis Graph" class="project-image">
+        <p class="caption">
+            Figure 1. Scatter plot showing a positive relationship between study hours and exam score.
+        </p>
+    </section>
 
-    <p>
-        In the early weeks (Weeks 1–4), I built a strong foundation in Python programming,
-        including data types, control flow, and working with structured data using pandas.
-        I also learned how to create basic visualisations and began working with marimo
-        to develop reactive notebooks and simple web-based outputs.
-    </p>
+    <section class="section">
+        <h2>Project 2: Attendance and Performance Analysis</h2>
+        <p>
+            This project explores the relationship between attendance rate and average academic performance.
+            Using Python and matplotlib, I created a bar chart to compare average score outcomes across
+            different levels of attendance.
+        </p>
+        <p>
+            The visualisation suggests that stronger attendance is associated with better academic results.
+            This project demonstrates my ability to compare grouped data, identify patterns, and communicate
+            data-driven insights clearly.
+        </p>
 
-    <p>
-        As the module progressed, I developed more advanced analytical skills such as
-        data cleaning, handling missing values, and creating more meaningful
-        visualisations. I applied these skills in my projects by analysing relationships
-        between variables, such as study time and performance, and attendance and results.
-    </p>
+        <img src="images/attendance.png" alt="Attendance and Performance Graph" class="project-image">
+        <p class="caption">
+            Figure 2. Bar chart comparing average academic scores across different attendance rates.
+        </p>
+    </section>
 
-    <p>
-        I also explored more advanced topics including structured data workflows,
-        regression concepts, and the importance of data preparation techniques such as
-        handling outliers and transforming variables. This strengthened my ability to
-        approach data analysis in a more systematic and research-oriented way.
-    </p>
+    <section class="section">
+        <h2>Project 3: Financial Trend Comparison</h2>
+        <p>
+            This project compares financial performance trends across two companies over time.
+            I used Python and pandas to structure the data, and matplotlib to create a line chart
+            showing changes in indexed stock-price-style performance across a six-month period.
+        </p>
+        <p>
+            The chart shows upward movement for both companies, with one company demonstrating stronger
+            growth over the period. This project demonstrates my ability to work with time-series style
+            data, compare trends across variables, and present financial information visually.
+        </p>
 
-    <p>
-        In addition, I extended my learning through self-exploration by developing this
-        portfolio using GitHub Pages and improving its structure with HTML and CSS.
-        This demonstrates my ability to present technical work in a professional and
-        accessible format beyond the core requirements of the module.
-    </p>
-</div>
-    <div class="section">
+        <img src="images/financial_trend.png" alt="Financial Trend Comparison Graph" class="project-image">
+        <p class="caption">
+            Figure 3. Line chart comparing financial trends across two companies over time.
+        </p>
+    </section>
+
+    <section class="section">
+        <h2>Technical Journey</h2>
+        <p>
+            Throughout this module, I developed my data literacy skills progressively, starting with
+            foundational Python concepts and advancing towards more structured data analysis and
+            communication techniques.
+        </p>
+
+        <p>
+            In the early weeks, I built a strong foundation in Python programming, including data types,
+            control flow, indexing, and the use of functions. I also developed skills in working with
+            structured data using pandas and producing visualisations using matplotlib.
+        </p>
+
+        <p>
+            As the module progressed, I strengthened my analytical skills by learning about data cleaning,
+            handling missing values, and presenting more meaningful visual outputs. My project work reflects
+            this development through the analysis of relationships between variables and the communication
+            of insights through graphs.
+        </p>
+
+        <p>
+            I also explored broader concepts such as structured workflows, regression ideas, and the
+            importance of careful data preparation before analysis. In addition, I extended my learning
+            through self-exploration by developing this portfolio using GitHub Pages and improving its
+            presentation with HTML and CSS.
+        </p>
+    </section>
+
+    <section class="section">
         <h2>Reflection</h2>
         <p>
-           <div class="section">
-    <h2>Reflection</h2>
-    <p>
-        Through this project, I developed strong skills in structuring and analysing data
-        using pandas, as well as creating clear and effective visualisations using matplotlib.
-        I improved my ability to interpret relationships within datasets and communicate
-        insights in a structured and professional way.
-    </p>
-    <p>
-        This portfolio reflects my progression from learning fundamental programming concepts
-        to applying them in real data analysis scenarios. It also demonstrates my ability to
-        present technical work clearly, which is an essential skill for data-driven roles.
-    </p>
-</div>
+            Through this portfolio, I developed practical skills in structuring and analysing data using
+            pandas, as well as creating clear and effective visualisations using matplotlib.
         </p>
+
+        <p>
+            One of the most important areas of development for me was learning how to move beyond simply
+            writing code and towards interpreting results. I improved my ability to identify patterns in
+            data, explain their meaning clearly, and communicate technical work in a structured and
+            professional way.
+        </p>
+
+        <p>
+            This portfolio reflects my progression from learning fundamental programming concepts to
+            applying them in practical data analysis scenarios. It also demonstrates my ability to present
+            technical work clearly, which is an essential skill for data-driven and analytical roles.
+        </p>
+
+        <p>
+            Going forward, I aim to continue developing my skills by working with larger real-world
+            datasets, applying more advanced analytical methods, and building more interactive and
+            automated data applications.
+        </p>
+    </section>
+
+    <div class="footer">
+        <p>Created by Imran Shaale using Python, GitHub Pages, and HTML/CSS.</p>
     </div>
 
 </body>
