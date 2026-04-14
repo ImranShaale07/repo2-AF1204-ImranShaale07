@@ -21,28 +21,51 @@ mo.md("""
 - GitHub
 """)
 
-# Sample data
+# ------------------------
+# PROJECT 1 (IMPROVED)
+# ------------------------
+
 data = pd.DataFrame({
-    "Category": ["A", "B", "C"],
-    "Values": [10, 20, 15]
+    "Study Hours": [1, 2, 3, 4, 5, 6, 7, 8],
+    "Score": [50, 55, 65, 70, 75, 78, 85, 90],
+    "Student": ["A", "B", "C", "D", "E", "F", "G", "H"]
 })
 
-# Plot
 plt.figure()
-plt.bar(data["Category"], data["Values"])
-plt.title("Sample Data Chart")
-plt.xlabel("Category")
-plt.ylabel("Values")
+plt.plot(data["Study Hours"], data["Score"], marker='o')
+
+# Add labels to each point
+for i, txt in enumerate(data["Student"]):
+    plt.annotate(txt, (data["Study Hours"][i], data["Score"][i]))
+
+plt.title("Study Hours vs Exam Score")
+plt.xlabel("Study Hours")
+plt.ylabel("Score")
+plt.grid()
+
 plt.show()
 
-# Project description
 mo.md("""
-## Project 1
-This project demonstrates a simple data visualisation using Python.
+## Project 1: Study Time Analysis
+
+This project analyses the relationship between study hours and exam performance.
+Each data point represents an individual student, allowing comparison across multiple observations.
+
+The visualisation shows a clear positive trend, suggesting that increased study time
+is associated with higher academic performance.
+
+Additional enhancements such as data labelling and gridlines improve readability
+and support clearer interpretation of the results.
 """)
 
-# Reflection
+# ------------------------
+# REFLECTION
+# ------------------------
+
 mo.md("""
 ## Reflection
-I learned how to analyse and present data clearly using Python tools.
+
+I developed skills in structuring datasets using pandas and creating visualisations
+using matplotlib. This project demonstrates my ability to analyse relationships
+within data and present insights clearly and effectively.
 """)
