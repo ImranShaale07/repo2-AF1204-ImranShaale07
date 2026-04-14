@@ -6,7 +6,7 @@ data literacy skills developed throughout the course.
 
 ## 🌐 Live Website
 View my portfolio here:
-https://bayesug-ai.github.io/repo2-AF1204-ImranShaale07
+(https://imranshaale07.github.io/repo2-AF1204-ImranShaale07/)
 
 ## 💻 Contents
 - portfolio.py: marimo-based Python notebook demonstrating data analysis
