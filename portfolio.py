@@ -1,6 +1,4 @@
 import marimo as mo
-import pandas as pd
-import matplotlib.pyplot as plt
 
 app = mo.App()
 
@@ -11,17 +9,22 @@ def __():
     import matplotlib.pyplot as plt
     return mo, pd, plt
 
+
 @app.cell
 def __(mo):
     mo.md(
         """
         # Imran Shaale - Data Portfolio
 
-        This portfolio showcases my developing data literacy skills in Python,
-        data analysis, visualisation, and reproducible digital workflows.
+        This portfolio showcases my developing data literacy skills in Python, data analysis,
+        visualisation, and reproducible digital workflows.
+
+        It presents a selection of small projects that demonstrate how I structure data,
+        analyse relationships between variables, create visualisations, and communicate insights clearly.
         """
     )
     return
+
 
 @app.cell
 def __(mo):
@@ -29,12 +32,13 @@ def __(mo):
         """
         ## About Me
 
-        I am a student building practical skills in coding, data analysis,
-        and communication. This portfolio presents examples of how I use
-        Python to explore data, create visualisations, and explain insights clearly.
+        I am a student building practical skills in coding, data analysis, and communication.
+        Through this portfolio, I present examples of how I use Python to explore datasets,
+        create visualisations, and explain findings in a clear and accessible way.
         """
     )
     return
+
 
 @app.cell
 def __(mo):
@@ -49,9 +53,17 @@ def __(mo):
         - Data visualisation
         - GitHub and GitHub Pages
         - marimo notebooks
+        - Basic analytical interpretation
         """
     )
     return
+
+
+@app.cell
+def __(mo):
+    mo.md("## Projects")
+    return
+
 
 @app.cell
 def __(pd):
@@ -62,39 +74,63 @@ def __(pd):
     })
     return study_data,
 
+
 @app.cell
 def __(plt, study_data):
-    fig, ax = plt.subplots()
-    ax.plot(study_data["Study Hours"], study_data["Score"], marker="o")
+    fig1, ax = plt.subplots(figsize=(7, 4.5))
+    ax.scatter(study_data["Study Hours"], study_data["Score"])
 
     for i, student in enumerate(study_data["Student"]):
-        ax.annotate(student, (study_data["Study Hours"][i], study_data["Score"][i]))
+        ax.annotate(
+            student,
+            (study_data["Study Hours"][i], study_data["Score"][i]),
+            xytext=(5, 5),
+            textcoords="offset points"
+        )
 
     ax.set_title("Study Hours vs Exam Score")
     ax.set_xlabel("Study Hours")
-    ax.set_ylabel("Score")
+    ax.set_ylabel("Exam Score")
     ax.grid(True)
-
     plt.tight_layout()
-    fig
-    return fig,
+    fig1
+    return fig1,
+
 
 @app.cell
 def __(mo):
     mo.md(
         """
-        ## Project 1: Study Time Analysis
+        ### Project 1: Study Time Analysis
 
-        This project analyses the relationship between study hours and exam performance.
-        Each data point represents an individual student, making it possible to compare
-        performance across multiple observations.
+        This project investigates the relationship between study time and exam performance
+        using Python, pandas, and matplotlib.
 
-        The visualisation shows a clear positive relationship between study time and score.
-        This demonstrates my ability to structure data, explore relationships between variables,
-        and communicate findings in a clear visual format.
+        I structured the dataset in a pandas DataFrame and created a scatter plot to visualise
+        the relationship between study hours and exam scores. Each point represents an
+        individual student, allowing patterns across multiple observations to be compared.
+
+        The visualisation suggests a clear positive relationship between study time and academic
+        performance, with students who study more tending to achieve higher scores.
+
+        This project demonstrates my ability to:
+        - structure tabular data using pandas
+        - visualise relationships between variables
+        - communicate findings clearly through annotated charts
         """
     )
     return
+
+
+@app.cell
+def __(mo):
+    mo.md(
+        """
+        **Figure 1.** Scatter plot showing a positive relationship between study hours and exam scores.
+        """
+    )
+    return
+
 
 @app.cell
 def __(pd):
@@ -104,35 +140,115 @@ def __(pd):
     })
     return attendance_data,
 
+
 @app.cell
 def __(attendance_data, plt):
-    fig2, ax = plt.subplots()
+    fig2, ax = plt.subplots(figsize=(7, 4.5))
     ax.bar(attendance_data["Attendance Rate"].astype(str), attendance_data["Average Score"])
 
     ax.set_title("Attendance Rate vs Average Score")
     ax.set_xlabel("Attendance Rate (%)")
     ax.set_ylabel("Average Score")
     ax.grid(axis="y")
-
     plt.tight_layout()
     fig2
     return fig2,
+
 
 @app.cell
 def __(mo):
     mo.md(
         """
-        ## Project 2: Attendance and Performance Analysis
+        ### Project 2: Attendance and Performance Analysis
 
-        This project explores the relationship between attendance rate and average academic
-        performance. The chart demonstrates a clear positive relationship between attendance
-        and academic results.
+        This project explores the relationship between attendance rate and average academic performance.
 
-        This demonstrates my ability to compare grouped data, identify trends, and present
-        data-driven insights clearly.
+        Using pandas, I structured attendance and performance data into a DataFrame and used
+        matplotlib to create a bar chart comparing average scores across attendance levels.
+
+        The visualisation suggests that stronger attendance is associated with better academic
+        performance. This indicates that regular engagement may contribute positively to outcomes,
+        although other factors may also influence results.
+
+        This project demonstrates my ability to:
+        - compare grouped data
+        - identify trends across categories
+        - present data-driven insights in a clear visual format
         """
     )
     return
+
+
+@app.cell
+def __(mo):
+    mo.md(
+        """
+        **Figure 2.** Bar chart comparing average academic scores across different attendance rates.
+        """
+    )
+    return
+
+
+@app.cell
+def __(pd):
+    stock_data = pd.DataFrame({
+        "Month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+        "Company A": [100, 105, 110, 108, 115, 120],
+        "Company B": [95, 97, 96, 100, 103, 107]
+    })
+    return stock_data,
+
+
+@app.cell
+def __(plt, stock_data):
+    fig3, ax = plt.subplots(figsize=(7, 4.5))
+    ax.plot(stock_data["Month"], stock_data["Company A"], marker="o", label="Company A")
+    ax.plot(stock_data["Month"], stock_data["Company B"], marker="o", label="Company B")
+
+    ax.set_title("Sample Stock Price Comparison")
+    ax.set_xlabel("Month")
+    ax.set_ylabel("Stock Price Index")
+    ax.legend()
+    ax.grid(True)
+    plt.tight_layout()
+    fig3
+    return fig3,
+
+
+@app.cell
+def __(mo):
+    mo.md(
+        """
+        ### Project 3: Financial Trend Comparison
+
+        This project presents a simple comparison of stock price movements across two companies
+        over time.
+
+        I used pandas to structure time-series data and matplotlib to visualise trends using a
+        line chart. This type of analysis is useful for comparing relative performance and
+        observing differences in growth patterns over a sequence of periods.
+
+        The chart shows that both companies experienced upward movement overall, although
+        Company A displayed stronger growth across the period shown.
+
+        This project demonstrates my ability to:
+        - work with time-series style data
+        - compare trends across multiple variables
+        - present financial-style data visually and clearly
+        """
+    )
+    return
+
+
+@app.cell
+def __(mo):
+    mo.md(
+        """
+        **Figure 3.** Line chart comparing sample stock price movements across two companies.
+        """
+    )
+    return
+
 
 @app.cell
 def __(mo):
@@ -140,25 +256,28 @@ def __(mo):
         """
         ## Technical Journey
 
-        Throughout this module, I developed my data literacy skills progressively,
-        starting with foundational Python concepts and advancing towards more complex
-        data analysis and automation techniques.
+        Throughout this module, I developed my data literacy skills progressively, starting with
+        foundational Python concepts and advancing towards more structured data analysis and
+        communication techniques.
 
-        In Weeks 1 to 4, I built a foundation in Python programming, including data types,
-        control flow, structured data handling, and visualisation. I also began working
-        with marimo to create reactive notebooks and web-based outputs.
+        In the early weeks, I built a foundation in Python programming, including data types,
+        control flow, indexing, and working with structured data using pandas. I also developed
+        basic visualisation skills using matplotlib and began working with marimo to create
+        reactive notebooks and web-based outputs.
 
         As the module progressed, I developed stronger analytical skills such as data cleaning,
         handling missing values, and producing more meaningful visualisations. My project work
-        reflects this development through the analysis of relationships between variables.
+        reflects this development through the analysis of relationships between variables and the
+        communication of insights using charts.
 
-        I also explored broader analytical concepts including structured workflows, regression
-        ideas, and data preparation methods. In addition, I extended my learning through
-        self-exploration by developing this portfolio with GitHub Pages and improving its
-        presentation using HTML and CSS.
+        I also explored broader concepts such as structured workflows, regression ideas, and the
+        importance of preparing data carefully before analysis. In addition, I extended my learning
+        by developing this portfolio using GitHub Pages and presenting my work in a more
+        professional and accessible format.
         """
     )
     return
+
 
 @app.cell
 def __(mo):
@@ -166,17 +285,25 @@ def __(mo):
         """
         ## Reflection
 
-        Through this portfolio, I developed strong skills in structuring and analysing data
+        Through this portfolio, I developed practical skills in structuring and analysing data
         using pandas, as well as creating clear and effective visualisations using matplotlib.
-        I improved my ability to interpret relationships within datasets and communicate
-        insights in a structured and professional way.
 
-        This project reflects my progression from learning fundamental programming concepts
-        to applying them in practical data analysis scenarios. It also demonstrates my ability
-        to present technical work clearly, which is an essential skill for data-driven roles.
+        One of the most important areas of development for me was learning how to move beyond
+        writing code and towards interpreting results. I improved my ability to identify patterns
+        in datasets, explain their meaning clearly, and present technical work in a structured way.
+
+        This portfolio reflects my progression from learning fundamental programming concepts to
+        applying them in practical data analysis scenarios. It also demonstrates my ability to
+        present technical work clearly and professionally, which is an important skill for
+        data-driven and analytical roles.
+
+        Going forward, I would like to continue developing my skills by working with larger
+        real-world datasets, applying more advanced statistical techniques, and building more
+        interactive data applications.
         """
     )
     return
+
 
 if __name__ == "__main__":
     app.run()
