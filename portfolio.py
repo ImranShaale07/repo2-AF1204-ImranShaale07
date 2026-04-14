@@ -22,7 +22,7 @@ mo.md("""
 """)
 
 # ------------------------
-# PROJECT 1 (IMPROVED)
+# PROJECT 1 
 # ------------------------
 
 data = pd.DataFrame({
@@ -57,7 +57,33 @@ is associated with higher academic performance.
 Additional enhancements such as data labelling and gridlines improve readability
 and support clearer interpretation of the results.
 """)
+# ------------------------
+# PROJECT 2
+# ------------------------
 
+attendance_data = pd.DataFrame({
+    "Attendance Rate": [60, 65, 70, 75, 80, 85, 90, 95],
+    "Average Score": [48, 52, 58, 63, 68, 74, 81, 88]
+})
+
+plt.figure()
+plt.bar(attendance_data["Attendance Rate"].astype(str), attendance_data["Average Score"])
+plt.title("Attendance Rate vs Average Score")
+plt.xlabel("Attendance Rate (%)")
+plt.ylabel("Average Score")
+plt.grid(axis="y")
+
+plt.show()
+
+mo.md("""
+## Project 2: Attendance and Performance Analysis
+
+This project explores the relationship between attendance rate and average academic performance.
+The bar chart shows that higher attendance is associated with stronger average scores.
+
+This demonstrates my ability to compare grouped data, use visualisation to highlight trends,
+and communicate findings clearly.
+""")
 # ------------------------
 # REFLECTION
 # ------------------------
