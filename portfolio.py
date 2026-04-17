@@ -16,6 +16,9 @@ def __():
 
 @app.cell
 def __(mo):
+    from pathlib import Path
+    base = mo.notebook_dir() or Path(".")
+    return base
     mo.md(
         r"""
         # Imran Shaale - Data Portfolio
@@ -170,7 +173,12 @@ def __(plt, study_filtered):
 
 
 @app.cell
-def __(mo):
+def __(mo, base):
+    mo.image(
+        src=str(base / "figure1.png"),
+        width=500
+    )
+    return
     mo.md(
         r"""
         ### Project 1: Study Time Analysis
@@ -342,7 +350,12 @@ def __(mo):
 
 
 @app.cell
-def __(mo):
+def __(mo, base):
+    mo.image(
+        src=str(base / "figure2.png"),
+        width=500
+    )
+    return
     mo.md(
         r"""
         **Figure 2.** Bar chart comparing average academic scores across different attendance rates.
@@ -402,7 +415,12 @@ def __(company_selector, financial_data, plt):
 
 
 @app.cell
-def __(mo):
+def __(mo, base):
+    mo.image(
+        src=str(base / "figure3.png"),
+        width=500
+    )
+    return
     mo.md(
         r"""
         ### Project 3: Financial Trend Comparison
@@ -461,7 +479,12 @@ def __(plt, workflow_data):
 
 
 @app.cell
-def __(mo):
+def __(mo, base):
+    mo.image(
+        src=str(base / "figure4.png"),
+        width=500
+    )
+    return
     mo.md(
         r"""
         ## Project 4: Automation and Web Data Workflow
@@ -522,7 +545,12 @@ def __(plt, prompt_data):
 
 
 @app.cell
-def __(mo):
+def __(mo, base):
+    mo.image(
+        src=str(base / "figure5.png"),
+        width=500
+    )
+    return
     mo.md(
         r"""
         ## Project 5: AI Tools and Prompt Design
@@ -614,7 +642,12 @@ def __(plt, word_freq_df):
 
 
 @app.cell
-def __(mo):
+def __(mo, base):
+    mo.image(
+        src=str(base / "figure6.png"),
+        width=500
+    )
+    return
     mo.md(
         r"""
         ## Project 6: Introductory Text Analysis
@@ -671,7 +704,12 @@ def __(development_data, plt):
 
 
 @app.cell
-def __(mo):
+def __(mo, base):
+    mo.image(
+        src=str(base / "figure7.png"),
+        width=500
+    )
+    return
     mo.md(
         r"""
         ## Project 7: Extended Analytical Development
