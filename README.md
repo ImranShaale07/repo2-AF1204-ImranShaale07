@@ -4,23 +4,23 @@
 This repository contains my individual project for the module, showcasing my
 data literacy skills developed throughout the course.
 
-## 🌐 Live Website
+##  Live Website
 View my portfolio here:
 (https://imranshaale07.github.io/repo2-AF1204-ImranShaale07/)
 
-## 💻 Contents
+##  Contents
 - portfolio.py: marimo-based Python notebook demonstrating data analysis
 - index.html: deployed portfolio webpage
 - README.md: project overview
 
-## 📊 Skills Demonstrated
+##  Skills Demonstrated
 - Python programming
 - Data analysis using pandas
 - Data visualisation using matplotlib
 - GitHub and GitHub Pages deployment
 - Communication of insights
 
-## 🎯 Purpose
+##  Purpose
 This project demonstrates my ability to:
 - analyse and interpret data
 - create visualisations
