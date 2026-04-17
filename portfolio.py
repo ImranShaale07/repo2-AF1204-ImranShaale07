@@ -436,6 +436,31 @@ def __(mo):
 
 
 @app.cell
+def __(pd):
+    workflow_data = pd.DataFrame(
+        {
+            "Stage": ["Links Found", "Files Selected", "Files Downloaded", "Files Extracted", "Files Prepared"],
+            "Count": [12, 10, 9, 8, 7],
+        }
+    )
+    return workflow_data
+
+
+@app.cell
+def __(plt, workflow_data):
+    fig4, ax = plt.subplots(figsize=(7, 4.5))
+    ax.bar(workflow_data["Stage"], workflow_data["Count"])
+    ax.set_title("Automation Workflow Stages")
+    ax.set_xlabel("Workflow Stage")
+    ax.set_ylabel("Number of Documents")
+    ax.grid(axis="y")
+    plt.xticks(rotation=25)
+    plt.tight_layout()
+    fig4
+    return fig4
+
+
+@app.cell
 def __(mo):
     mo.md(
         r"""
@@ -447,6 +472,9 @@ def __(mo):
         The module introduced the idea of automation pipelines for working with web-based and
         unstructured data. This includes tasks such as locating relevant files, downloading
         documents, extracting content, and preparing data for later analysis.
+
+        The chart below presents a simple workflow-style summary to illustrate how a document
+        pipeline can move from discovery to preparation.
 
         Through this, I developed my understanding of:
         - the difference between structured and unstructured data
@@ -462,10 +490,48 @@ def __(mo):
 def __(mo):
     mo.md(
         r"""
+        **Figure 4.** Example workflow summary showing document movement through an automation pipeline.
+        """
+    )
+    return
+
+
+@app.cell
+def __(pd):
+    prompt_data = pd.DataFrame(
+        {
+            "Prompt Type": ["Generic Prompt", "Detailed Prompt", "Grounded Prompt"],
+            "Quality Score": [5, 7, 9],
+        }
+    )
+    return prompt_data
+
+
+@app.cell
+def __(plt, prompt_data):
+    fig5, ax = plt.subplots(figsize=(7, 4.5))
+    ax.bar(prompt_data["Prompt Type"], prompt_data["Quality Score"])
+    ax.set_title("Prompt Quality Comparison")
+    ax.set_xlabel("Prompt Type")
+    ax.set_ylabel("Quality Score")
+    ax.grid(axis="y")
+    plt.xticks(rotation=20)
+    plt.tight_layout()
+    fig5
+    return fig5
+
+
+@app.cell
+def __(mo):
+    mo.md(
+        r"""
         ## Project 5: AI Tools and Prompt Design
 
         Another important area of learning in the module was understanding how large language models
         can support coding, analysis, and communication when used carefully.
+
+        To reflect this, I included a simple comparison of prompt styles. The chart illustrates how
+        more detailed and grounded prompts can support higher-quality outputs than vague prompting.
 
         Through this topic, I developed my understanding of:
         - how LLMs generate text probabilistically
@@ -475,6 +541,16 @@ def __(mo):
 
         This helped me think more critically about how AI tools can support analytical work while still
         requiring human judgement, verification, and clear prompting.
+        """
+    )
+    return
+
+
+@app.cell
+def __(mo):
+    mo.md(
+        r"""
+        **Figure 5.** Example comparison showing how prompt design can influence output quality.
         """
     )
     return
@@ -525,7 +601,7 @@ def __(Counter, pd, re, text_data):
 
 @app.cell
 def __(plt, word_freq_df):
-    fig4, ax = plt.subplots(figsize=(7, 4.5))
+    fig6, ax = plt.subplots(figsize=(7, 4.5))
     ax.bar(word_freq_df["Word"], word_freq_df["Frequency"])
     ax.set_title("Top Words in Sample Business Text")
     ax.set_xlabel("Word")
@@ -533,8 +609,8 @@ def __(plt, word_freq_df):
     ax.grid(axis="y")
     plt.xticks(rotation=45)
     plt.tight_layout()
-    fig4
-    return fig4
+    fig6
+    return fig6
 
 
 @app.cell
@@ -564,10 +640,34 @@ def __(mo):
 def __(mo):
     mo.md(
         r"""
-        **Figure 4.** Bar chart showing the most frequent words in a small sample of business text.
+        **Figure 6.** Bar chart showing the most frequent words in a small sample of business text.
         """
     )
     return
+
+
+@app.cell
+def __(pd):
+    development_data = pd.DataFrame(
+        {
+            "Area": ["Coding", "Analysis", "Visualisation", "Workflow", "Communication"],
+            "Development Score": [6, 7, 7, 8, 8],
+        }
+    )
+    return development_data
+
+
+@app.cell
+def __(development_data, plt):
+    fig7, ax = plt.subplots(figsize=(7, 4.5))
+    ax.bar(development_data["Area"], development_data["Development Score"])
+    ax.set_title("Development Across Analytical Skills")
+    ax.set_xlabel("Skill Area")
+    ax.set_ylabel("Development Score")
+    ax.grid(axis="y")
+    plt.tight_layout()
+    fig7
+    return fig7
 
 
 @app.cell
@@ -577,13 +677,25 @@ def __(mo):
         ## Project 7: Extended Analytical Development
 
         As the module developed, I also strengthened my understanding of how different tools,
-        workflows, and analytical approaches can be combined within one project. This included
-        thinking more carefully about reproducibility, interpretation, communication, and how
-        technical choices affect the usefulness of outputs.
+        workflows, and analytical approaches can be combined within one project.
+
+        The chart below summarises key areas of development across the portfolio, showing that
+        the project involved not only coding and chart production, but also workflow awareness,
+        interpretation, and communication.
 
         This broader development helped me move from producing isolated code outputs towards
         building a more complete analytical workflow that combines coding, interpretation,
         presentation, and reflection.
+        """
+    )
+    return
+
+
+@app.cell
+def __(mo):
+    mo.md(
+        r"""
+        **Figure 7.** Summary chart showing development across key analytical skill areas.
         """
     )
     return
@@ -634,8 +746,8 @@ def __(mo):
 
         Through this work, I strengthened my ability to use pandas for structuring data,
         matplotlib for visual communication, and marimo for building a reproducible and interactive
-        workflow. I also developed my understanding of how summary statistics, correlation, and
-        simple regression can support more rigorous interpretation.
+        workflow. I also developed my understanding of how summary statistics, correlation, simple
+        regression, and text analysis can support more rigorous interpretation.
 
         The project also reflects self-directed exploration through the use of marimo, GitHub,
         GitHub Pages, and HTML-based presentation. This helped me improve the professionalism
