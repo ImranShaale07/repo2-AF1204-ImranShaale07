@@ -202,10 +202,7 @@ def __(mo):
 
 @app.cell
 def __(mo, base):
-    mo.image(
-        src=str(base / "images" / "figure1.png"),
-        width=500
-    )
+    mo.image(src=str(base / "images" / "study_time.png"), width=500)
     return
 
 
@@ -359,10 +356,7 @@ def __(mo):
 
 @app.cell
 def __(mo, base):
-    mo.image(
-        src=str(base / "images" / "figure2.png"),
-        width=500
-    )
+    mo.image(src=str(base / "images" / "attendance.png"), width=500)
     return
 
 
@@ -452,10 +446,7 @@ def __(mo):
 
 @app.cell
 def __(mo, base):
-    mo.image(
-        src=str(base / "images" / "figure3.png"),
-        width=500
-    )
+    mo.image(src=str(base / "images" / "financial_trend.png"), width=500)
     return
 
 
@@ -522,10 +513,7 @@ def __(mo):
 
 @app.cell
 def __(mo, base):
-    mo.image(
-        src=str(base / "images" / "figure4.png"),
-        width=500
-    )
+    mo.image(src=str(base / "images" / "workflow.png"), width=500)
     return
 
 
@@ -591,10 +579,7 @@ def __(mo):
 
 @app.cell
 def __(mo, base):
-    mo.image(
-        src=str(base / "images" / "figure5.png"),
-        width=500
-    )
+    mo.image(src=str(base / "images" / "prompt_quality.png"), width=500)
     return
 
 
@@ -690,10 +675,7 @@ def __(mo):
 
 @app.cell
 def __(mo, base):
-    mo.image(
-        src=str(base / "images" / "figure6.png"),
-        width=500
-    )
+    mo.image(src=str(base / "images" / "text_analysis.png"), width=500)
     return
 
 
@@ -754,10 +736,7 @@ def __(mo):
 
 @app.cell
 def __(mo, base):
-    mo.image(
-        src=str(base / "images" / "figure7.png"),
-        width=500
-    )
+    mo.image(src=str(base / "images" / "development.png"), width=500)
     return
 
 
