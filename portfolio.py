@@ -11,14 +11,18 @@ def __():
     import statsmodels.formula.api as smf
     from collections import Counter
     import re
-    return mo, pd, plt, smf, Counter, re
+    from pathlib import Path
+    return mo, pd, plt, smf, Counter, re, Path
+
+
+@app.cell
+def __(mo, Path):
+    base = mo.notebook_dir() or Path(".")
+    return base
 
 
 @app.cell
 def __(mo):
-    from pathlib import Path
-    base = mo.notebook_dir() or Path(".")
-    return base
     mo.md(
         r"""
         # Imran Shaale - Data Portfolio
@@ -173,12 +177,7 @@ def __(plt, study_filtered):
 
 
 @app.cell
-def __(mo, base):
-    mo.image(
-        src=str(base / "figure1.png"),
-        width=500
-    )
-    return
+def __(mo):
     mo.md(
         r"""
         ### Project 1: Study Time Analysis
@@ -197,6 +196,15 @@ def __(mo, base):
         - identify relationships between variables
         - communicate findings clearly using visualisation
         """
+    )
+    return
+
+
+@app.cell
+def __(mo, base):
+    mo.image(
+        src=str(base / "images" / "figure1.png"),
+        width=500
     )
     return
 
@@ -352,10 +360,14 @@ def __(mo):
 @app.cell
 def __(mo, base):
     mo.image(
-        src=str(base / "figure2.png"),
+        src=str(base / "images" / "figure2.png"),
         width=500
     )
     return
+
+
+@app.cell
+def __(mo):
     mo.md(
         r"""
         **Figure 2.** Bar chart comparing average academic scores across different attendance rates.
@@ -415,12 +427,7 @@ def __(company_selector, financial_data, plt):
 
 
 @app.cell
-def __(mo, base):
-    mo.image(
-        src=str(base / "figure3.png"),
-        width=500
-    )
-    return
+def __(mo):
     mo.md(
         r"""
         ### Project 3: Financial Trend Comparison
@@ -439,6 +446,15 @@ def __(mo, base):
         - compare trends across multiple variables
         - communicate comparative insights using clear visualisation
         """
+    )
+    return
+
+
+@app.cell
+def __(mo, base):
+    mo.image(
+        src=str(base / "images" / "figure3.png"),
+        width=500
     )
     return
 
@@ -479,12 +495,7 @@ def __(plt, workflow_data):
 
 
 @app.cell
-def __(mo, base):
-    mo.image(
-        src=str(base / "figure4.png"),
-        width=500
-    )
-    return
+def __(mo):
     mo.md(
         r"""
         ## Project 4: Automation and Web Data Workflow
@@ -505,6 +516,15 @@ def __(mo, base):
         - why scraping and document extraction require careful preparation and checking
         - the importance of reproducible data pipelines
         """
+    )
+    return
+
+
+@app.cell
+def __(mo, base):
+    mo.image(
+        src=str(base / "images" / "figure4.png"),
+        width=500
     )
     return
 
@@ -545,12 +565,7 @@ def __(plt, prompt_data):
 
 
 @app.cell
-def __(mo, base):
-    mo.image(
-        src=str(base / "figure5.png"),
-        width=500
-    )
-    return
+def __(mo):
     mo.md(
         r"""
         ## Project 5: AI Tools and Prompt Design
@@ -570,6 +585,15 @@ def __(mo, base):
         This helped me think more critically about how AI tools can support analytical work while still
         requiring human judgement, verification, and clear prompting.
         """
+    )
+    return
+
+
+@app.cell
+def __(mo, base):
+    mo.image(
+        src=str(base / "images" / "figure5.png"),
+        width=500
     )
     return
 
@@ -642,12 +666,7 @@ def __(plt, word_freq_df):
 
 
 @app.cell
-def __(mo, base):
-    mo.image(
-        src=str(base / "figure6.png"),
-        width=500
-    )
-    return
+def __(mo):
     mo.md(
         r"""
         ## Project 6: Introductory Text Analysis
@@ -665,6 +684,15 @@ def __(mo, base):
         This links to the broader module theme of working not only with tables of numbers, but also
         with text-based data that may require additional cleaning before analysis.
         """
+    )
+    return
+
+
+@app.cell
+def __(mo, base):
+    mo.image(
+        src=str(base / "images" / "figure6.png"),
+        width=500
     )
     return
 
@@ -704,12 +732,7 @@ def __(development_data, plt):
 
 
 @app.cell
-def __(mo, base):
-    mo.image(
-        src=str(base / "figure7.png"),
-        width=500
-    )
-    return
+def __(mo):
     mo.md(
         r"""
         ## Project 7: Extended Analytical Development
@@ -725,6 +748,15 @@ def __(mo, base):
         building a more complete analytical workflow that combines coding, interpretation,
         presentation, and reflection.
         """
+    )
+    return
+
+
+@app.cell
+def __(mo, base):
+    mo.image(
+        src=str(base / "images" / "figure7.png"),
+        width=500
     )
     return
 
