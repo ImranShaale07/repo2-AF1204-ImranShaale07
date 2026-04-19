@@ -268,20 +268,31 @@ def _(count, filtered_portfolio, go, mo, pd, px):
     chart_sentiment = mo.ui.plotly(fig_sentiment)
 
     # ── Travel map ──────────────────────────────────────────────────────────────
-    travel_data = pd.DataFrame(
+   travel_data = pd.DataFrame(
         {
             "City": [
-                "London", "Paris", "Madrid", "Dubai", "Istanbul",
-                "Marrakech", "Amsterdam", "Rome", "New York", "Lagos",
+                "Paris", "Vienna", "Hallstatt", "Salzburg", "Amsterdam",
+                "Madrid", "Barcelona", "Milan", "Rhodes", "Nairobi",
+                "Garissa", "Mombasa",
             ],
-            "Lat": [51.5, 48.8, 40.4, 25.2, 41.0, 31.6, 52.4, 41.9, 40.7, 6.5],
-            "Lon": [-0.1, 2.3, -3.7, 55.3, 28.9, -8.0, 4.9, 12.5, -74.0, 3.4],
+            "Lat": [
+                48.8, 48.2, 47.6, 47.8, 52.4,
+                40.4, 41.4, 45.5, 36.4, -1.3,
+                -0.5, -4.1,
+            ],
+            "Lon": [
+                2.3, 16.4, 13.6, 13.0, 4.9,
+                -3.7, 2.2, 9.2, 28.2, 36.8,
+                42.0, 39.7,
+            ],
             "Visit_Year": [
-                "2022", "2023", "2023", "2024", "2024",
-                "2023", "2022", "2024", "2024", "2022",
+                "2021", "2023", "2023", "2023", "2022",
+                "2024", "2024", "2025", "2022", "2020",
+                "2020", "2021",
             ],
         }
     )
+
     years_travel = sorted(travel_data["Visit_Year"].unique(), key=int)
     fig_travel = px.scatter_geo(
         travel_data,
@@ -602,10 +613,10 @@ Scores represent the mean of sentence-level classifications
 
 *Travel*
 
-I have visited a range of cities across Europe, the Middle East, North America, and Africa.
-Experiencing different markets, economies, and cultures has deepened my understanding of
-how global conditions shape business and finance — something I find directly relevant to
-my studies at Bayes.
+I have visited cities across Europe and Africa, including Paris, Vienna, Hallstatt,
+Salzburg, Amsterdam, Madrid, Barcelona, Milan, Rhodes, and several cities in Kenya
+including Nairobi, Garissa, and Mombasa. Travelling has given me a strong appreciation
+for different economies, cultures, and business environments globally.
             """),
             chart_travel,
             mo.md("""
