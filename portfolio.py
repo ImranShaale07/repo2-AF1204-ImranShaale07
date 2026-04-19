@@ -296,7 +296,7 @@ and analytical skills. Experience at EY, TSB Bank, QPR, and two years in hospita
 strengthened my understanding of financial processes, stakeholder interactions, and the
 importance of confidentiality. I am a dependable and proactive learner seeking opportunities
 to develop my skills further in finance. This portfolio showcases the technical data science
-skills I have built through AF1204 Introduction to Data Science and AI Tools.
+skills that I have built through AF1204 Introduction to Data Science and AI Tools.
 
 ---
 
