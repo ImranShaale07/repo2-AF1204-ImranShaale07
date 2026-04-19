@@ -160,53 +160,6 @@ def _(count, filtered_portfolio, go, mo, pd, px):
     )
     chart_box = mo.ui.plotly(fig_box)
 
-    # ── 3D Chart 1: Z-Score vs Cost of Debt vs Market Cap
-    fig_3d_cap = px.scatter_3d(
-        filtered_portfolio,
-        x="Z_Score_lag",
-        y="Debt_Cost_Percent",
-        z="Market_Cap_B",
-        color="Risk_Band",
-        color_discrete_map=band_colors,
-        hover_name="Name",
-        title=f"3D View: Z-Score · Cost of Debt · Market Cap ({count} observations)",
-        labels={
-            "Z_Score_lag": "Altman Z-Score (lagged)",
-            "Debt_Cost_Percent": "Avg. Cost of Debt (%)",
-            "Market_Cap_B": "Market Cap ($ Bn)",
-            "Risk_Band": "Risk Band",
-        },
-        template="plotly_white",
-        height=600,
-    )
-    fig_3d_cap.update_traces(marker=dict(size=4, opacity=0.8))
-    chart_3d_cap = mo.ui.plotly(fig_3d_cap)
-
-    # ── 3D Chart 2: Z-Score vs Cost of Debt vs Sector (encoded)
-    sector_list = sorted(filtered_portfolio["Sector_Key"].unique().tolist())
-    sector_map = {s: i for i, s in enumerate(sector_list)}
-    fp_encoded = filtered_portfolio.copy()
-    fp_encoded["Sector_Num"] = fp_encoded["Sector_Key"].map(sector_map)
-    fig_3d_sector = px.scatter_3d(
-        fp_encoded,
-        x="Z_Score_lag",
-        y="Debt_Cost_Percent",
-        z="Sector_Num",
-        color="Sector_Key",
-        hover_name="Name",
-        title=f"3D View: Z-Score · Cost of Debt · Sector ({count} observations)",
-        labels={
-            "Z_Score_lag": "Altman Z-Score (lagged)",
-            "Debt_Cost_Percent": "Avg. Cost of Debt (%)",
-            "Sector_Num": "Sector (encoded)",
-            "Sector_Key": "Sector",
-        },
-        template="plotly_white",
-        height=600,
-    )
-    fig_3d_sector.update_traces(marker=dict(size=4, opacity=0.8))
-    chart_3d_sector = mo.ui.plotly(fig_3d_sector)
-
     # ── LLM Sentiment chart ─────────────────────────────────────────────────────
     sentiment_data = pd.DataFrame(
         {
@@ -265,7 +218,7 @@ def _(count, filtered_portfolio, go, mo, pd, px):
     fig_travel.update_traces(marker=dict(size=14))
     chart_travel = mo.ui.plotly(fig_travel)
 
-    return chart_box, chart_scatter, chart_sentiment, chart_travel, chart_3d_cap, chart_3d_sector
+    return chart_box, chart_scatter, chart_sentiment, chart_travel
 
 
 @app.cell
@@ -275,8 +228,6 @@ def _(
     chart_scatter,
     chart_sentiment,
     chart_travel,
-    chart_3d_cap,
-    chart_3d_sector,
     mo,
     sector_dropdown,
 ):
@@ -401,14 +352,6 @@ a firm's lagged Z-Score (Year t-1) predicts its average cost of debt (Year t).
                 "This box plot shows the spread of borrowing costs within each Z-Score category."
             ),
             chart_box,
-            mo.md("---"),
-            mo.md("### 3D View: Z-Score · Cost of Debt · Market Cap (Week 4)"),
-            mo.md("Rotate the chart by clicking and dragging. Larger firms tend to cluster in the Safe Zone."),
-            chart_3d_cap,
-            mo.md("---"),
-            mo.md("### 3D View: Z-Score · Cost of Debt · Sector (Week 4)"),
-            mo.md("This chart adds sector as a third dimension, encoded numerically on the z-axis, revealing sector-level clustering in credit risk."),
-            chart_3d_sector,
         ]
     )
 
