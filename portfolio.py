@@ -1,811 +1,562 @@
-import marimo as mo
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "marimo>=0.22.4",
+#     "pandas>=2.3.3",
+#     "plotly>=6.5.1",
+#     "pyarrow>=22.0.0",
+#     "pyzmq>=27.1.0",
+# ]
+# ///
 
-app = mo.App()
+import marimo
+
+__generated_with = "0.23.1"
+app = marimo.App()
 
 
 @app.cell
-def __():
+def _():
     import marimo as mo
     import pandas as pd
-    import matplotlib.pyplot as plt
-    import statsmodels.formula.api as smf
-    from collections import Counter
-    import re
-    from pathlib import Path
-    return mo, pd, plt, smf, Counter, re, Path
+    import micropip
+
+    return micropip, mo, pd
 
 
 @app.cell
-def __(mo, Path):
-    base = mo.notebook_dir() or Path(".")
-    return base
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        # Imran Shaale - Data Portfolio
-
-        This portfolio showcases my development in Python, data analysis, visualisation,
-        reproducible workflows, and technical communication across the module.
-
-        It combines structured data analysis, visual presentation, introductory statistical
-        interpretation, text-based analysis, and reflection on broader topics such as automation
-        and AI-supported workflows.
-        """
+def _(pd):
+    csv_url = (
+        "https://gist.githubusercontent.com/DrAYim/"
+        "80393243abdbb4bfe3b45fef58e8d3c8/raw/"
+        "acd66213efc7ae2c353ab913e58c694534ae90f7/"
+        "sp500_ZScore_avgCoDebt.csv"
     )
-    return
+    df_final = pd.read_csv(csv_url)
+    df_final = df_final.dropna(subset=["AvgCost_of_Debt", "Z_Score_lag", "Sector_Key"])
+    df_final = df_final[df_final["AvgCost_of_Debt"] < 5]
+    df_final["Debt_Cost_Percent"] = df_final["AvgCost_of_Debt"] * 100
+    df_final["Market_Cap_B"] = df_final["Market_Cap"] / 1e9
+
+    def zscore_band(z):
+        if z < 1.81:
+            return "Distress Zone"
+        elif z < 2.99:
+            return "Grey Zone"
+        else:
+            return "Safe Zone"
+
+    df_final["Risk_Band"] = df_final["Z_Score_lag"].apply(zscore_band)
+    return (df_final,)
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## About Me
-
-        I am a student developing practical skills in coding, data analysis, and communication.
-        I am particularly interested in using data to identify patterns, compare outcomes,
-        and present evidence-based conclusions in a clear and structured way.
-
-        This portfolio demonstrates how I apply Python tools such as pandas, matplotlib,
-        and marimo to work with datasets, create visualisations, and communicate insights
-        professionally.
-        """
+def _(df_final, mo):
+    all_sectors = sorted(df_final["Sector_Key"].unique().tolist())
+    sector_dropdown = mo.ui.multiselect(
+        options=all_sectors,
+        value=all_sectors[:4],
+        label="Filter by Sector",
     )
-    return
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## Skills
-
-        - Python programming
-        - pandas
-        - matplotlib
-        - marimo notebooks
-        - data preparation and cleaning
-        - exploratory data analysis
-        - data visualisation
-        - interpretation of results
-        - summary statistics
-        - simple regression
-        - introductory text analysis
-        - workflow and automation concepts
-        - AI literacy and prompt design
-        - GitHub and GitHub Pages
-        - technical communication
-        """
+    cap_slider = mo.ui.slider(
+        start=0,
+        stop=200,
+        step=10,
+        value=0,
+        label="Min Market Cap ($ Billions)",
     )
-    return
+    return cap_slider, sector_dropdown
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## Module Skills Demonstrated
+def _(cap_slider, df_final, sector_dropdown):
+    filtered_portfolio = df_final[
+        (df_final["Sector_Key"].isin(sector_dropdown.value))
+        & (df_final["Market_Cap_B"] >= cap_slider.value)
+    ]
+    count = len(filtered_portfolio)
+    return count, filtered_portfolio
 
-        This portfolio demonstrates practical skills developed through the module, including:
 
-        - Python programming fundamentals
-        - structuring data using pandas DataFrames
-        - data visualisation using matplotlib
-        - interpretation of relationships between variables
-        - reproducible workflows using marimo
-        - interactive presentation using notebook-style components
-        - communication of analytical findings through written explanation
+@app.cell
+async def _(micropip):
+    await micropip.install("plotly")
+    import plotly.express as px
+    import plotly.graph_objects as go
 
-        In addition to core coding skills, this project also reflects self-directed exploration
-        through the use of marimo, GitHub, GitHub Pages, and web presentation techniques.
-        """
+    return go, px
+
+
+@app.cell
+def _(count, filtered_portfolio, go, mo, pd, px):
+    # ── Credit Risk charts ──────────────────────────────────────────────────────
+    fig_scatter = px.scatter(
+        filtered_portfolio,
+        x="Z_Score_lag",
+        y="Debt_Cost_Percent",
+        color="Sector_Key",
+        size="Market_Cap_B",
+        hover_name="Name",
+        title=f"Cost of Debt vs. Altman Z-Score ({count} observations)",
+        labels={
+            "Z_Score_lag": "Altman Z-Score (lagged)",
+            "Debt_Cost_Percent": "Avg. Cost of Debt (%)",
+        },
+        template="plotly_white",
+        height=500,
     )
-    return
-
-
-@app.cell
-def __(mo):
-    mo.md("## Projects")
-    return
-
-
-@app.cell
-def __(mo):
-    min_study_hours = mo.ui.slider(1, 8, value=1, label="Minimum study hours to display")
-    attendance_threshold = mo.ui.slider(
-        60, 95, value=60, step=5, label="Minimum attendance rate to display"
+    fig_scatter.add_vline(
+        x=1.81,
+        line_dash="dash",
+        line_color="crimson",
+        annotation=dict(
+            text="Distress (Z < 1.81)",
+            font=dict(color="crimson"),
+            x=1.5,
+            xref="x",
+            y=0.97,
+            yref="paper",
+            showarrow=False,
+        ),
     )
-    company_selector = mo.ui.dropdown(
-        options=["Both", "Company A", "Company B"],
-        value="Both",
-        label="Financial trend view",
+    fig_scatter.add_vline(
+        x=2.99,
+        line_dash="dash",
+        line_color="seagreen",
+        annotation=dict(
+            text="Safe (Z > 2.99)",
+            font=dict(color="seagreen"),
+            x=3.08,
+            xref="x",
+            y=0.97,
+            yref="paper",
+            showarrow=False,
+        ),
     )
-    return min_study_hours, attendance_threshold, company_selector
-
-
-@app.cell
-def __(company_selector, mo, min_study_hours, attendance_threshold):
-    mo.vstack(
-        [
-            mo.md("## Interactive Controls"),
-            min_study_hours,
-            attendance_threshold,
-            company_selector,
-        ]
-    )
-    return
-
-
-@app.cell
-def __(min_study_hours, pd):
-    study_data = pd.DataFrame(
-        {
-            "Study Hours": [1, 2, 3, 4, 5, 6, 7, 8],
-            "Score": [50, 55, 65, 70, 75, 78, 85, 90],
-            "Student": ["A", "B", "C", "D", "E", "F", "G", "H"],
-        }
-    )
-    study_filtered = study_data[study_data["Study Hours"] >= min_study_hours.value].copy()
-    study_filtered["Performance Category"] = study_filtered["Score"].apply(
-        lambda x: "High" if x >= 75 else "Moderate"
-    )
-    return study_data, study_filtered
-
-
-@app.cell
-def __(plt, study_filtered):
-    fig1, ax = plt.subplots(figsize=(7, 4.5))
-    ax.scatter(study_filtered["Study Hours"], study_filtered["Score"])
-
-    for i, student in enumerate(study_filtered["Student"]):
-        ax.annotate(
-            student,
-            (study_filtered["Study Hours"].iloc[i], study_filtered["Score"].iloc[i]),
-            xytext=(5, 5),
-            textcoords="offset points",
-        )
-
-    ax.set_title("Study Hours vs Exam Score")
-    ax.set_xlabel("Study Hours")
-    ax.set_ylabel("Exam Score")
-    ax.grid(True)
-    plt.tight_layout()
-    fig1
-    return fig1
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ### Project 1: Study Time Analysis
-
-        This project investigates the relationship between study time and exam performance.
-
-        I structured the dataset using pandas and created a scatter plot using matplotlib
-        to visualise the relationship between study hours and exam scores. Each point
-        represents an individual student, allowing comparisons across multiple observations.
-
-        The visualisation shows a positive relationship, suggesting that students who
-        spend more time studying tend to achieve higher exam scores.
-
-        This project demonstrates my ability to:
-        - structure data in a pandas DataFrame
-        - identify relationships between variables
-        - communicate findings clearly using visualisation
-        """
-    )
-    return
-
-
-@app.cell
-def __(mo, base):
-    mo.image(src=str(base / "images" / "study_time.png"), width=500)
-    return
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        **Figure 1.** Scatter plot showing a positive relationship between study hours and exam score.
-        """
-    )
-    return
-
-
-@app.cell
-def __(study_data):
-    study_summary = study_data[["Study Hours", "Score"]].describe()
-    study_corr = study_data[["Study Hours", "Score"]].corr()
-    return study_summary, study_corr
-
-
-@app.cell
-def __(mo, study_corr, study_summary):
-    mo.vstack(
-        [
-            mo.md("#### Additional Analysis: Summary Statistics and Correlation"),
-            mo.md(
-                "To strengthen the analysis, I also examined summary statistics and the correlation between study time and exam score."
-            ),
-            mo.md("**Summary statistics**"),
-            study_summary,
-            mo.md("**Correlation matrix**"),
-            study_corr,
-        ]
-    )
-    return
-
-
-@app.cell
-def __(pd, smf, study_data):
-    regression_data = study_data.rename(columns={"Study Hours": "study_hours", "Score": "score"})
-    model = smf.ols("score ~ study_hours", data=regression_data).fit()
-
-    regression_results = pd.DataFrame(
-        {
-            "Metric": ["R-squared", "Coefficient on study_hours", "Intercept"],
-            "Value": [
-                round(model.rsquared, 3),
-                round(model.params["study_hours"], 3),
-                round(model.params["Intercept"], 3),
-            ],
-        }
-    )
-    return model, regression_results
-
-
-@app.cell
-def __(mo, regression_results):
-    mo.md(
-        r"""
-        #### Additional Analysis: Simple Regression
-
-        I also used a simple regression model to estimate the relationship between study hours
-        and exam score. This extends the project beyond chart-based interpretation and shows
-        an early understanding of how analytical relationships can be tested more formally.
-        """
-    )
-    regression_results
-    return
-
-
-@app.cell
-def __(pd, study_filtered):
-    study_crosstab = pd.crosstab(study_filtered["Performance Category"], columns="Count")
-    return study_crosstab
-
-
-@app.cell
-def __(mo, study_crosstab):
-    mo.md(
-        r"""
-        #### Additional Analysis: Categorisation and Crosstab
-
-        As part of the data preparation process, I also grouped observations into performance
-        categories. This demonstrates an understanding of how raw numerical data can be transformed
-        into more interpretable analytical groupings.
-        """
-    )
-    study_crosstab
-    return
-
-
-@app.cell
-def __(attendance_threshold, pd):
-    attendance_data = pd.DataFrame(
-        {
-            "Attendance Rate": [60, 65, 70, 75, 80, 85, 90, 95],
-            "Average Score": [48, 52, 58, 63, 68, 74, 81, 88],
-        }
-    )
-    attendance_filtered = attendance_data[
-        attendance_data["Attendance Rate"] >= attendance_threshold.value
-    ].copy()
-
-    attendance_filtered["Attendance Band"] = attendance_filtered["Attendance Rate"].apply(
-        lambda x: "High" if x >= 85 else "Moderate"
-    )
-    return attendance_data, attendance_filtered
-
-
-@app.cell
-def __(attendance_filtered, plt):
-    fig2, ax = plt.subplots(figsize=(7, 4.5))
-    ax.bar(
-        attendance_filtered["Attendance Rate"].astype(str),
-        attendance_filtered["Average Score"],
-    )
-
-    ax.set_title("Attendance Rate vs Average Score")
-    ax.set_xlabel("Attendance Rate (%)")
-    ax.set_ylabel("Average Score")
-    ax.grid(axis="y")
-    plt.tight_layout()
-    fig2
-    return fig2
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ### Project 2: Attendance and Performance Analysis
-
-        This project explores the relationship between attendance rate and average academic performance.
-
-        Using pandas, I organised attendance and performance data into a structured dataset.
-        I then used matplotlib to create a bar chart comparing average scores across different
-        attendance levels.
-
-        The chart suggests that stronger attendance is associated with better academic performance.
-        This indicates that regular engagement may contribute positively to outcomes, although
-        other factors may also influence results.
-
-        This project demonstrates my ability to:
-        - compare grouped data
-        - identify trends across categories
-        - present data-driven insights clearly
-        """
-    )
-    return
-
-
-@app.cell
-def __(mo, base):
-    mo.image(src=str(base / "images" / "attendance.png"), width=500)
-    return
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        **Figure 2.** Bar chart comparing average academic scores across different attendance rates.
-        """
-    )
-    return
-
-
-@app.cell
-def __(company_selector, pd):
-    financial_data = pd.DataFrame(
-        {
-            "Month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-            "Company A": [100, 104, 109, 112, 118, 123],
-            "Company B": [95, 97, 99, 101, 103, 106],
-        }
-    )
-
-    if company_selector.value == "Company A":
-        financial_view = financial_data[["Month", "Company A"]].copy()
-    elif company_selector.value == "Company B":
-        financial_view = financial_data[["Month", "Company B"]].copy()
-    else:
-        financial_view = financial_data.copy()
-
-    return financial_data, financial_view
-
-
-@app.cell
-def __(company_selector, financial_data, plt):
-    fig3, ax = plt.subplots(figsize=(7, 4.5))
-
-    if company_selector.value in ["Both", "Company A"]:
-        ax.plot(
-            financial_data["Month"],
-            financial_data["Company A"],
-            marker="o",
-            label="Company A",
-        )
-
-    if company_selector.value in ["Both", "Company B"]:
-        ax.plot(
-            financial_data["Month"],
-            financial_data["Company B"],
-            marker="o",
-            label="Company B",
-        )
-
-    ax.set_title("Financial Trend Comparison")
-    ax.set_xlabel("Month")
-    ax.set_ylabel("Stock Price Index")
-    ax.legend()
-    ax.grid(True)
-    plt.tight_layout()
-    fig3
-    return fig3
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ### Project 3: Financial Trend Comparison
-
-        This project presents a simple comparison of financial performance trends across two companies.
-
-        I used pandas to structure time-series style data and matplotlib to create a line chart
-        comparing indexed stock price movements over a six-month period. This type of visualisation
-        is useful for identifying relative growth patterns and comparing performance across firms.
-
-        The chart shows that both companies experienced upward movement, but Company A demonstrated
-        stronger growth over the period shown.
-
-        This project demonstrates my ability to:
-        - work with financial-style time-series data
-        - compare trends across multiple variables
-        - communicate comparative insights using clear visualisation
-        """
-    )
-    return
-
-
-@app.cell
-def __(mo, base):
-    mo.image(src=str(base / "images" / "financial_trend.png"), width=500)
-    return
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        **Figure 3.** Line chart comparing financial trends across two companies over time.
-        """
-    )
-    return
-
-
-@app.cell
-def __(pd):
-    workflow_data = pd.DataFrame(
-        {
-            "Stage": ["Links Found", "Files Selected", "Files Downloaded", "Files Extracted", "Files Prepared"],
-            "Count": [12, 10, 9, 8, 7],
-        }
-    )
-    return workflow_data
-
-
-@app.cell
-def __(plt, workflow_data):
-    fig4, ax = plt.subplots(figsize=(7, 4.5))
-    ax.bar(workflow_data["Stage"], workflow_data["Count"])
-    ax.set_title("Automation Workflow Stages")
-    ax.set_xlabel("Workflow Stage")
-    ax.set_ylabel("Number of Documents")
-    ax.grid(axis="y")
-    plt.xticks(rotation=25)
-    plt.tight_layout()
-    fig4
-    return fig4
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## Project 4: Automation and Web Data Workflow
-
-        This section reflects my understanding of how coding can be used not only to analyse
-        prepared datasets, but also to support data collection and workflow automation.
-
-        The module introduced the idea of automation pipelines for working with web-based and
-        unstructured data. This includes tasks such as locating relevant files, downloading
-        documents, extracting content, and preparing data for later analysis.
-
-        The chart below presents a simple workflow-style summary to illustrate how a document
-        pipeline can move from discovery to preparation.
-
-        Through this, I developed my understanding of:
-        - the difference between structured and unstructured data
-        - how automated workflows can reduce repetitive manual tasks
-        - why scraping and document extraction require careful preparation and checking
-        - the importance of reproducible data pipelines
-        """
-    )
-    return
-
-
-@app.cell
-def __(mo, base):
-    mo.image(src=str(base / "images" / "workflow.png"), width=500)
-    return
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        **Figure 4.** Example workflow summary showing document movement through an automation pipeline.
-        """
-    )
-    return
-
-
-@app.cell
-def __(pd):
-    prompt_data = pd.DataFrame(
-        {
-            "Prompt Type": ["Generic Prompt", "Detailed Prompt", "Grounded Prompt"],
-            "Quality Score": [5, 7, 9],
-        }
-    )
-    return prompt_data
-
-
-@app.cell
-def __(plt, prompt_data):
-    fig5, ax = plt.subplots(figsize=(7, 4.5))
-    ax.bar(prompt_data["Prompt Type"], prompt_data["Quality Score"])
-    ax.set_title("Prompt Quality Comparison")
-    ax.set_xlabel("Prompt Type")
-    ax.set_ylabel("Quality Score")
-    ax.grid(axis="y")
-    plt.xticks(rotation=20)
-    plt.tight_layout()
-    fig5
-    return fig5
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## Project 5: AI Tools and Prompt Design
-
-        Another important area of learning in the module was understanding how large language models
-        can support coding, analysis, and communication when used carefully.
-
-        To reflect this, I included a simple comparison of prompt styles. The chart illustrates how
-        more detailed and grounded prompts can support higher-quality outputs than vague prompting.
-
-        Through this topic, I developed my understanding of:
-        - how LLMs generate text probabilistically
-        - why hallucinations and model drift are important limitations
-        - how prompt design influences the quality of outputs
-        - why grounding and checking outputs against source material is essential
-
-        This helped me think more critically about how AI tools can support analytical work while still
-        requiring human judgement, verification, and clear prompting.
-        """
-    )
-    return
-
-
-@app.cell
-def __(mo, base):
-    mo.image(src=str(base / "images" / "prompt_quality.png"), width=500)
-    return
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        **Figure 5.** Example comparison showing how prompt design can influence output quality.
-        """
-    )
-    return
-
-
-@app.cell
-def __(pd):
-    text_data = pd.DataFrame(
-        {
-            "Document": ["Report A", "Report B", "Report C"],
-            "Text": [
-                "The company focused on sustainability, growth, and long-term risk management.",
-                "The report emphasised supply chain resilience, customer demand, and sustainability goals.",
-                "Management discussed growth strategy, financial performance, and operational risk.",
-            ],
-        }
-    )
-    return text_data
-
-
-@app.cell
-def __(Counter, pd, re, text_data):
-    all_text = " ".join(text_data["Text"]).lower()
-    words = re.findall(r"\b[a-z]+\b", all_text)
-
-    stop_words = {
-        "the",
-        "on",
-        "and",
-        "of",
-        "a",
-        "to",
-        "with",
-        "long",
-        "term",
-        "this",
-        "that",
-        "for",
-        "in",
+    chart_scatter = mo.ui.plotly(fig_scatter)
+
+    band_order = ["Distress Zone", "Grey Zone", "Safe Zone"]
+    band_colors = {
+        "Distress Zone": "crimson",
+        "Grey Zone": "goldenrod",
+        "Safe Zone": "seagreen",
     }
-
-    filtered_words = [word for word in words if word not in stop_words]
-    word_counts = Counter(filtered_words).most_common(10)
-
-    word_freq_df = pd.DataFrame(word_counts, columns=["Word", "Frequency"])
-    return all_text, filtered_words, word_freq_df
-
-
-@app.cell
-def __(plt, word_freq_df):
-    fig6, ax = plt.subplots(figsize=(7, 4.5))
-    ax.bar(word_freq_df["Word"], word_freq_df["Frequency"])
-    ax.set_title("Top Words in Sample Business Text")
-    ax.set_xlabel("Word")
-    ax.set_ylabel("Frequency")
-    ax.grid(axis="y")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    fig6
-    return fig6
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## Project 6: Introductory Text Analysis
-
-        To extend my skills beyond structured numerical datasets, I also explored a simple text-analysis
-        workflow using Python. I created a small dataset of business-style text, cleaned the text,
-        removed common stop words, counted word frequency, and visualised the most common terms.
-
-        This demonstrates an early understanding of:
-        - unstructured text data
-        - basic natural language processing preparation
-        - frequency-based text analysis
-        - how business themes can be identified through repeated terms
-
-        This links to the broader module theme of working not only with tables of numbers, but also
-        with text-based data that may require additional cleaning before analysis.
-        """
+    fig_box = go.Figure()
+    for band in band_order:
+        subset = filtered_portfolio[filtered_portfolio["Risk_Band"] == band]
+        fig_box.add_trace(
+            go.Box(
+                y=subset["Debt_Cost_Percent"],
+                name=band,
+                marker_color=band_colors[band],
+                boxmean=True,
+            )
+        )
+    fig_box.update_layout(
+        title="Distribution of Cost of Debt by Z-Score Risk Band",
+        yaxis_title="Avg. Cost of Debt (%)",
+        template="plotly_white",
+        height=420,
     )
-    return
+    chart_box = mo.ui.plotly(fig_box)
 
-
-@app.cell
-def __(mo, base):
-    mo.image(src=str(base / "images" / "text_analysis.png"), width=500)
-    return
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        **Figure 6.** Bar chart showing the most frequent words in a small sample of business text.
-        """
-    )
-    return
-
-
-@app.cell
-def __(pd):
-    development_data = pd.DataFrame(
+    # ── LLM Sentiment chart ─────────────────────────────────────────────────────
+    sentiment_data = pd.DataFrame(
         {
-            "Area": ["Coding", "Analysis", "Visualisation", "Workflow", "Communication"],
-            "Development Score": [6, 7, 7, 8, 8],
+            "Company": ["Tesco", "Vodafone", "BP", "HSBC", "Unilever"],
+            "Sentiment_Score": [0.62, 0.18, -0.21, 0.44, 0.31],
+            "Label": ["Optimistic", "Neutral", "Cautious", "Optimistic", "Neutral"],
         }
     )
-    return development_data
-
-
-@app.cell
-def __(development_data, plt):
-    fig7, ax = plt.subplots(figsize=(7, 4.5))
-    ax.bar(development_data["Area"], development_data["Development Score"])
-    ax.set_title("Development Across Analytical Skills")
-    ax.set_xlabel("Skill Area")
-    ax.set_ylabel("Development Score")
-    ax.grid(axis="y")
-    plt.tight_layout()
-    fig7
-    return fig7
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## Project 7: Extended Analytical Development
-
-        As the module developed, I also strengthened my understanding of how different tools,
-        workflows, and analytical approaches can be combined within one project.
-
-        The chart below summarises key areas of development across the portfolio, showing that
-        the project involved not only coding and chart production, but also workflow awareness,
-        interpretation, and communication.
-
-        This broader development helped me move from producing isolated code outputs towards
-        building a more complete analytical workflow that combines coding, interpretation,
-        presentation, and reflection.
-        """
+    sentiment_colors = {
+        "Optimistic": "seagreen",
+        "Neutral": "steelblue",
+        "Cautious": "crimson",
+    }
+    fig_sentiment = px.bar(
+        sentiment_data,
+        x="Company",
+        y="Sentiment_Score",
+        color="Label",
+        color_discrete_map=sentiment_colors,
+        title="LLM-Derived Sentiment Scores — FTSE 100 Forward-Looking Statements",
+        labels={"Sentiment_Score": "Mean Sentence Sentiment Score"},
+        template="plotly_white",
+        height=400,
     )
-    return
+    fig_sentiment.add_hline(y=0, line_dash="dot", line_color="grey")
+    chart_sentiment = mo.ui.plotly(fig_sentiment)
 
-
-@app.cell
-def __(mo, base):
-    mo.image(src=str(base / "images" / "development.png"), width=500)
-    return
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        **Figure 7.** Summary chart showing development across key analytical skill areas.
-        """
+    # ── Travel map ──────────────────────────────────────────────────────────────
+    travel_data = pd.DataFrame(
+        {
+            "City": [
+                "London", "Paris", "Madrid", "Dubai", "Istanbul",
+                "Marrakech", "Amsterdam", "Rome", "New York", "Lagos",
+            ],
+            "Lat": [51.5, 48.8, 40.4, 25.2, 41.0, 31.6, 52.4, 41.9, 40.7, 6.5],
+            "Lon": [-0.1, 2.3, -3.7, 55.3, 28.9, -8.0, 4.9, 12.5, -74.0, 3.4],
+            "Visit_Year": [
+                "2022", "2023", "2023", "2024", "2024",
+                "2023", "2022", "2024", "2024", "2022",
+            ],
+        }
     )
-    return
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## Technical Journey
-
-        Throughout this module, I developed my skills progressively from foundational Python
-        concepts towards more structured and analytical data workflows.
-
-        In the early stages, I built confidence in core programming concepts such as variables,
-        control flow, indexing, and functions. These foundations supported later work with
-        structured datasets and visual outputs.
-
-        Through this portfolio, I applied pandas to organise data in DataFrames, used matplotlib
-        to create visualisations, and used marimo to structure the project in a reproducible and
-        reactive notebook environment. The addition of interactive controls strengthened the project
-        by showing how user inputs can update outputs dynamically.
-
-        I also extended the analysis beyond simple chart production by including summary statistics,
-        correlation analysis, categorisation, simple regression, and introductory text analysis.
-        This helped me move from basic visual exploration towards a more analytical workflow.
-
-        Alongside the technical coding work, I developed my communication skills by presenting the
-        project through a portfolio structure and by explaining what each chart and result shows
-        in a clear and professional way.
-        """
+    years_travel = sorted(travel_data["Visit_Year"].unique(), key=int)
+    fig_travel = px.scatter_geo(
+        travel_data,
+        lat="Lat",
+        lon="Lon",
+        hover_name="City",
+        color="Visit_Year",
+        category_orders={"Visit_Year": years_travel},
+        color_discrete_sequence=px.colors.qualitative.Bold,
+        projection="natural earth",
+        title="Places I Have Visited",
+        labels={"Visit_Year": "Year"},
     )
-    return
+    fig_travel.update_traces(marker=dict(size=14))
+    chart_travel = mo.ui.plotly(fig_travel)
+
+    return chart_box, chart_scatter, chart_sentiment, chart_travel
 
 
 @app.cell
-def __(mo):
+def _(
+    cap_slider,
+    chart_box,
+    chart_scatter,
+    chart_sentiment,
+    chart_travel,
+    mo,
+    sector_dropdown,
+):
+    # ── Tab 1: About Me ─────────────────────────────────────────────────────────
+    tab_about = mo.vstack(
+        [
+            mo.md("""
+## Imran Shaale
+### BSc Accounting & Finance · Bayes Business School, City St George's, University of London
+
+---
+
+*Profile*
+
+First-year Accounting and Finance student at Bayes Business School with strong numerical
+and analytical skills. Experience at EY, TSB Bank, QPR, and two years in hospitality has
+strengthened my understanding of financial processes, stakeholder interactions, and the
+importance of confidentiality. I am a dependable and proactive learner seeking opportunities
+to develop my skills further in finance. This portfolio showcases the technical data science
+skills I have built through AF1204 Introduction to Data Science and AI Tools.
+
+---
+
+*Education*
+
+| Qualification | Institution | Period |
+|---|---|---|
+| BSc Accounting & Finance | Bayes Business School, City St George's, University of London | Sep 2025 – Jun 2028 |
+| A-Levels: Economics (B), Politics (B), Mathematics (B) | Kensington Aldridge Academy | Sep 2018 – Jun 2025 |
+| 9 GCSEs: Grades 6–8 (inc. Mathematics 7, English Language 7) | Kensington Aldridge Academy | Sep 2018 – Jun 2025 |
+
+---
+
+*Relevant Experience*
+
+*EY Foundation — Intern* (April 2024)
+- Participated in a two-week programme focused on communication, teamwork, and client service.
+- Led a group project under pressure and pitched ideas to industry professionals.
+- Co-hosted a formal event, presenting to a large audience and engaging with senior guests.
+- Received training in public speaking, CV writing, and interview technique.
+
+*TSB Bank — Intern* (April 2024)
+- Shadowed frontline staff, assisting customers with withdrawals and deposits.
+- Observed professional banking standards including confidentiality, accuracy, and customer communication.
+
+---
+
+*Other Experience*
+
+*QPR Football Club — Work Experience* (June 2022)
+- Observed coaching processes and communication strategies within a professional sporting environment.
+- Gained early exposure to professional teamwork and performance management.
+
+*Nando's, Westfield London — Front of House* (Aug 2023 – Oct 2025)
+- Worked 8–40 hours weekly in one of the UK's busiest branches, with peak weekly sales of £120–130k.
+- Built strong customer service, cash handling, and time-management skills alongside A-Level studies.
+
+*Nando's, Baker Street — Front & Back of House* (Oct 2025 – Present)
+- Managing 20–50 hours weekly at the 2nd busiest store in the region, alongside university commitments.
+- Trained across FOH and BOH roles, progressing towards a supervisor position.
+
+---
+
+*Skills*
+
+| Category | Detail |
+|---|---|
+| IT | Microsoft Excel, Word, PowerPoint |
+| Languages | English (fluent), French (basic) |
+| Professional | Analytical thinking, client service, attention to detail, time management, confidentiality |
+
+---
+
+*Awards & Extracurricular*
+
+- Gold Award, Intermediate Mathematics Challenge 2023 (80 points)
+- Member of the Mathematical Sport Society, Sixth Form
+
+---
+
+*Career Goal*
+
+My ambition is to build a career in finance, developing strong technical and analytical capabilities
+at Bayes that complement my hands-on experience at EY and TSB. I am particularly interested
+in roles at the intersection of financial analysis and client service.
+
+---
+
+*Interests*
+
+🏋️ Gym — training regularly and building discipline and consistency  
+⚽ Football — playing regularly and following the game closely  
+🏀 Basketball — playing socially and following the NBA  
+📈 Following global business, financial markets, and economic news
+            """),
+        ]
+    )
+
+    # ── Tab 2: Credit Risk Analyser ─────────────────────────────────────────────
+    tab_analysis = mo.vstack(
+        [
+            mo.md("""
+## Interactive Credit Risk Analyser
+### Skills: Weeks 2, 3 & 4
+
+The Altman Z-Score predicts corporate bankruptcy risk using five financial ratios.
+A score below *1.81* signals financial distress; above *2.99* indicates a safe firm.
+Using S&P 500 panel data fetched programmatically via Yahoo Finance, I examine whether
+a firm's lagged Z-Score (Year t-1) predicts its average cost of debt (Year t).
+            """),
+            mo.callout(
+                mo.md(
+                    "Use the filters below to explore the relationship between credit risk and borrowing costs."
+                ),
+                kind="info",
+            ),
+            mo.hstack([sector_dropdown, cap_slider], justify="start", gap=2),
+            chart_scatter,
+            mo.md("---"),
+            mo.md("### Distribution of Cost of Debt by Risk Band (Week 3)"),
+            mo.md(
+                "This box plot shows the spread of borrowing costs within each Z-Score category."
+            ),
+            chart_box,
+        ]
+    )
+
+    # ── Tab 3: Web Scraping Pipeline ────────────────────────────────────────────
+    tab_scraping = mo.vstack(
+        [
+            mo.md("""
+## Web Scraping & Automation Pipeline
+### Skills: Week 7 — Playwright · PDF Extraction · Bot Evasion
+
+*Overview*
+
+Real-world financial data is not always available in clean CSV files. Company reports,
+ESG disclosures, and regulatory filings are scattered across thousands of corporate websites,
+making manual collection impossible at scale. In Week 7 I built an automated three-stage
+pipeline using *Playwright* to collect this unstructured data programmatically.
+
+---
+
+*Stage 1 — Bot Evasion & Cookie Handling*
+
+Many corporate websites block automated scripts by detecting non-human browser behaviour.
+The script launches a Chromium browser with a realistic user-agent string and hides automation
+flags, making it indistinguishable from a human visitor. It then automatically accepts cookie
+consent banners and saves the session cookies for reuse in later stages.
+
+Key techniques:
+- Launch Playwright Chromium with a custom user-agent string
+- Hide automation flags to bypass bot detection
+- Programmatically click "Accept All" on cookie consent banners
+- Save cookies and local storage to JSON for reuse
+
+---
+
+*Stage 2 — Web Crawling to Collect URLs*
+
+Starting from seed URLs (e.g. a company's investor relations page), the crawler follows links
+recursively up to a configurable depth, collecting all URLs matching target keywords such as
+"annual-report", "results", or "ESG". PDF links are filtered and saved separately.
+
+Key techniques:
+- Recursive web crawling with configurable depth limits
+- Keyword filtering to identify relevant URLs
+- Separate extraction of PDF links for Stage 3
+
+---
+
+*Stage 3 — PDF Download & Keyword Extraction*
+
+For each screened PDF URL, the script downloads the report, checks whether it is text-searchable
+or scanned (requiring OCR), and extracts only the pages containing target keywords such as
+"revenue", "outlook", or "guidance".
+
+Key techniques:
+- Programmatic PDF download with a ledger to avoid duplicates
+- Text extraction using PyMuPDF for searchable PDFs
+- OCR fallback for scanned documents
+- Page-by-page keyword counting and extraction
+
+---
+
+*Why this matters for finance*
+
+Financial analysts spend significant time manually sourcing data from company reports and
+regulatory filings. Automating this process at scale — as I have done here — allows analysts
+to monitor disclosures across hundreds of firms simultaneously, far faster than any manual workflow.
+            """),
+        ]
+    )
+
+    # ── Tab 4: LLM Sentiment Analysis ───────────────────────────────────────────
+    tab_llm = mo.vstack(
+        [
+            mo.md("""
+## LLM Sentiment Analysis of Corporate Disclosures
+### Skills: Weeks 8 & 9 — Prompt Engineering · Groq API · Few-Shot Prompting
+
+*Overview*
+
+Annual reports contain forward-looking statements that reveal management confidence about
+future performance. Manually reading hundreds of these is impractical. In Weeks 8 and 9
+I used Large Language Models accessed via the Groq API to classify the sentiment of these
+statements at scale.
+
+---
+
+*What is an LLM?*
+
+A large language model is a statistical model trained on vast quantities of text. It predicts
+the most likely next token given a prompt. LLMs do not verify facts — they generate plausible
+text — which is why controlling for hallucinations is critical in any production workflow.
+
+---
+
+*Controlling Hallucinations — Techniques Applied*
+
+| Technique | Purpose | Setting used |
+|---|---|---|
+| Temperature = 0 | Forces deterministic, factual outputs | temperature=0 |
+| Top-P = 1 | Full token pool, overridden by temperature | top_p=1 |
+| Few-shot examples | Labelled examples of positive/neutral/cautious sentences | 3 examples per class |
+| Prompt engineering | Structured prompt with persona, instructions, output format | See template below |
+| AI-as-judge | Second LLM validates the first model's classifications | Model B checks Model A |
+| Pinned model | Fixes model version to avoid drift over time | llama-3.1-8b-instant |
+
+---
+
+*Prompt Engineering Template Used*
+
+The prompt sent to the Groq API followed the structured template taught in Week 8,
+including a persona, step-by-step instructions, constraints, few-shot examples,
+and a specified JSON output format. Setting temperature to 0 ensured consistent,
+deterministic classifications across all firms.
+
+---
+
+*Results — Illustrative Sentiment Scores for Selected FTSE 100 Firms*
+
+Scores represent the mean of sentence-level classifications
+(+1 = optimistic, 0 = neutral, −1 = cautious).
+            """),
+            chart_sentiment,
+            mo.md("""
+---
+*Key techniques demonstrated:*
+- Groq API client setup with secure environment variable key retrieval
+- Structured prompt construction with few-shot examples
+- JSON response parsing and label-to-score conversion
+- Retry logic with back-off for API failures
+- Temperature and top-p hyperparameter control
+- AI-as-judge validation of sentiment classifications
+            """),
+        ]
+    )
+
+    # ── Tab 5: Personal Interests ───────────────────────────────────────────────
+    tab_personal = mo.vstack(
+        [
+            mo.md("""
+## Personal Interests
+
+---
+
+*Travel*
+
+I have visited a range of cities across Europe, the Middle East, North America, and Africa.
+Experiencing different markets, economies, and cultures has deepened my understanding of
+how global conditions shape business and finance — something I find directly relevant to
+my studies at Bayes.
+            """),
+            chart_travel,
+            mo.md("""
+---
+
+*Football*
+
+I play football regularly and follow the sport closely. I am particularly interested in the
+tactical and analytical dimensions of the modern game — how data is increasingly used by
+clubs to inform transfer decisions, performance management, and in-match strategy.
+
+---
+
+*Basketball*
+
+I play basketball socially and follow the NBA. The sport has taught me about quick
+decision-making under pressure — a skill equally valuable on a court or in a client-facing
+financial role.
+
+---
+
+*Gym & Fitness*
+
+I train regularly and value the discipline and consistency that comes with it. Maintaining
+a structured training routine alongside university and part-time work has strengthened my
+time-management skills considerably.
+
+---
+
+*Financial Markets & Business News*
+
+I follow global business and financial markets closely, reading financial news daily.
+My experience at EY and TSB gave me an early appreciation of how macroeconomic developments
+flow through to individual firms and their financial performance.
+            """),
+        ]
+    )
+
+    # ── Assemble tabs ───────────────────────────────────────────────────────────
+    app_tabs = mo.ui.tabs(
+        {
+            "👤 About Me": tab_about,
+            "📊 Credit Risk Analyser": tab_analysis,
+            "🌐 Web Scraping Pipeline": tab_scraping,
+            "🤖 LLM Sentiment Analysis": tab_llm,
+            "✈️ Personal Interests": tab_personal,
+        }
+    )
+
     mo.md(
-        r"""
-        ## Reflection
-
-        This portfolio reflects my development from foundational coding skills towards a more
-        structured approach to data analysis and communication.
-
-        A key area of progress for me was learning that effective analysis involves more than
-        producing code or charts. It also requires careful data organisation, appropriate choice
-        of visualisation, and clear explanation of what the results suggest.
-
-        Through this work, I strengthened my ability to use pandas for structuring data,
-        matplotlib for visual communication, and marimo for building a reproducible and interactive
-        workflow. I also developed my understanding of how summary statistics, correlation, simple
-        regression, and text analysis can support more rigorous interpretation.
-
-        The project also reflects self-directed exploration through the use of marimo, GitHub,
-        GitHub Pages, and HTML-based presentation. This helped me improve the professionalism
-        and accessibility of my work.
-
-        Going forward, I would like to continue developing these skills by working with larger
-        real-world datasets, using more advanced statistical techniques, and building more
-        interactive and automated analytical applications.
-        """
+        f"""
+# Imran Shaale
+#### BSc Accounting & Finance · Bayes Business School
+---
+{app_tabs}
+"""
     )
     return
 
