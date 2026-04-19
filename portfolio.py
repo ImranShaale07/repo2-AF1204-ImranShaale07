@@ -268,7 +268,7 @@ def _(count, filtered_portfolio, go, mo, pd, px):
     chart_sentiment = mo.ui.plotly(fig_sentiment)
 
     # ── Travel map ──────────────────────────────────────────────────────────────
-   travel_data = pd.DataFrame(
+    travel_data = pd.DataFrame(
         {
             "City": [
                 "Paris", "Vienna", "Hallstatt", "Salzburg", "Amsterdam",
