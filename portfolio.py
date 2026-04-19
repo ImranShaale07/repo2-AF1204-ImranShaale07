@@ -267,7 +267,7 @@ def _(count, filtered_portfolio, go, mo, pd, px):
     fig_sentiment.add_hline(y=0, line_dash="dot", line_color="grey")
     chart_sentiment = mo.ui.plotly(fig_sentiment)
 
-    # ── Travel map ──────────────────────────────────────────────────────────────
+    # 25002500 Travel map 250025002500250025002500250025002500250025002500250025002500250025002500250025002500250025002500250025002500250025002500250025002500250025002500250025002500250025002500
     travel_data = pd.DataFrame(
         {
             "City": [
