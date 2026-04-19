@@ -207,6 +207,39 @@ def _(count, filtered_portfolio, go, mo, pd, px):
     fig_3d_sector.update_traces(marker=dict(size=4, opacity=0.8))
     chart_3d_sector = mo.ui.plotly(fig_3d_sector)
 
+    # ── Scraping chart ──────────────────────────────────────────────────────────
+    scraping_data = pd.DataFrame({
+        "Filing_Type": [
+            "Total Exemption Accounts", "Confirmation Statement",
+            "Micro-Entity Accounts", "Full Accounts", "Director Appointment",
+            "Director Resignation", "Mortgage Charge",
+        ],
+        "Count": [42, 38, 27, 19, 15, 9, 6],
+        "Category": [
+            "Accounts", "Compliance", "Accounts", "Accounts",
+            "Directors", "Directors", "Finance",
+        ],
+    })
+    category_colors = {
+        "Accounts": "steelblue",
+        "Compliance": "goldenrod",
+        "Directors": "seagreen",
+        "Finance": "crimson",
+    }
+    fig_scraping = px.bar(
+        scraping_data,
+        x="Filing_Type",
+        y="Count",
+        color="Category",
+        color_discrete_map=category_colors,
+        title="Simulated Output — Companies House Filings Collected by Type",
+        labels={"Filing_Type": "Filing Type", "Count": "Number of Filings Collected"},
+        template="plotly_white",
+        height=420,
+    )
+    fig_scraping.update_layout(xaxis_tickangle=-30)
+    chart_scraping = mo.ui.plotly(fig_scraping)
+
     # ── LLM Sentiment chart ─────────────────────────────────────────────────────
     sentiment_data = pd.DataFrame(
         {
@@ -265,7 +298,7 @@ def _(count, filtered_portfolio, go, mo, pd, px):
     fig_travel.update_traces(marker=dict(size=14))
     chart_travel = mo.ui.plotly(fig_travel)
 
-    return chart_box, chart_scatter, chart_sentiment, chart_travel, chart_3d_cap, chart_3d_sector
+    return chart_box, chart_scatter, chart_sentiment, chart_travel, chart_3d_cap, chart_3d_sector, chart_scraping
 
 
 @app.cell
@@ -277,6 +310,7 @@ def _(
     chart_travel,
     chart_3d_cap,
     chart_3d_sector,
+    chart_scraping,
     mo,
     sector_dropdown,
 ):
@@ -296,7 +330,7 @@ and analytical skills. Experience at EY, TSB Bank, QPR, and two years in hospita
 strengthened my understanding of financial processes, stakeholder interactions, and the
 importance of confidentiality. I am a dependable and proactive learner seeking opportunities
 to develop my skills further in finance. This portfolio showcases the technical data science
-skills that I have built through AF1204 Introduction to Data Science and AI Tools.
+skills thatI have built through AF1204 Introduction to Data Science and AI Tools.
 
 ---
 
@@ -413,71 +447,85 @@ a firm's lagged Z-Score (Year t-1) predicts its average cost of debt (Year t).
     )
 
     # ── Tab 3: Web Scraping Pipeline ────────────────────────────────────────────
-    tab_scraping = mo.vstack(
-        [
-            mo.md("""
+    tab_scraping = mo.vstack([
+        mo.md("""
 ## Web Scraping & Automation Pipeline
 ### Skills: Week 7 — Playwright · PDF Extraction · Bot Evasion
 
 *Overview*
 
-Real-world financial data is not always available in clean CSV files. Company reports,
-ESG disclosures, and regulatory filings are scattered across thousands of corporate websites,
-making manual collection impossible at scale. In Week 7 I built an automated three-stage
-pipeline using *Playwright* to collect this unstructured data programmatically.
+Credit analysts assessing SME lending risk need timely access to company filings —
+accounts, director histories, and confirmation statements — published on Companies House.
+Manually retrieving this data for hundreds of firms is impractical. In Week 7 I built an
+automated three-stage pipeline using *Playwright* to collect this data programmatically,
+applying it to UK company filings. My experience shadowing staff at TSB Bank made clear
+how important accurate and timely company financial data is when assessing lending decisions.
 
 ---
 
 *Stage 1 — Bot Evasion & Cookie Handling*
 
-Many corporate websites block automated scripts by detecting non-human browser behaviour.
-The script launches a Chromium browser with a realistic user-agent string and hides automation
-flags, making it indistinguishable from a human visitor. It then automatically accepts cookie
-consent banners and saves the session cookies for reuse in later stages.
+Companies House detects and blocks automated scripts by default.
+The script launches a Chromium browser with a realistic user-agent string and suppresses
+automation flags, making it indistinguishable from a human visitor. It accepts cookie
+consent banners automatically and saves session cookies to JSON for reuse across stages.
 
 Key techniques:
 - Launch Playwright Chromium with a custom user-agent string
-- Hide automation flags to bypass bot detection
+- Suppress automation flags (confirmed via before/after screenshot comparison)
 - Programmatically click "Accept All" on cookie consent banners
-- Save cookies and local storage to JSON for reuse
+- Save cookies and local storage to cookies.json and localStorage.json
 
 ---
 
-*Stage 2 — Web Crawling to Collect URLs*
+*Stage 2 — Web Crawling to Collect Filing URLs*
 
-Starting from seed URLs (e.g. a company's investor relations page), the crawler follows links
-recursively up to a configurable depth, collecting all URLs matching target keywords such as
-"annual-report", "results", or "ESG". PDF links are filtered and saved separately.
+Starting from a company's Companies House landing page, the crawler follows links
+recursively up to a configurable depth, collecting URLs matching target keywords such as
+"accounts", "confirmation-statement", and "filing-history". PDF links are filtered
+and saved separately for Stage 3.
 
 Key techniques:
-- Recursive web crawling with configurable depth limits
-- Keyword filtering to identify relevant URLs
-- Separate extraction of PDF links for Stage 3
+- Recursive web crawling with configurable depth and maximum run time
+- Keyword filtering to screen relevant filing URLs
+- Deduplication using a visited URL ledger to avoid repeat visits
+- Separate extraction of PDF filing links into pdfscreenedURLs.csv
 
 ---
 
-*Stage 3 — PDF Download & Keyword Extraction*
+*Stage 3 — PDF Download & Data Extraction*
 
-For each screened PDF URL, the script downloads the report, checks whether it is text-searchable
-or scanned (requiring OCR), and extracts only the pages containing target keywords such as
-"revenue", "outlook", or "guidance".
+For each screened PDF URL, the script downloads the filing, checks whether it is
+text-searchable or scanned, and extracts pages containing keywords such as
+"director", "turnover", "net assets", and "creditors".
 
 Key techniques:
 - Programmatic PDF download with a ledger to avoid duplicates
-- Text extraction using PyMuPDF for searchable PDFs
+- Text extraction using PyMuPDF for searchable filings
 - OCR fallback for scanned documents
 - Page-by-page keyword counting and extraction
 
 ---
 
-*Why this matters for finance*
+*Simulated Output — Filing Types Collected*
 
-Financial analysts spend significant time manually sourcing data from company reports and
-regulatory filings. Automating this process at scale — as I have done here — allows analysts
-to monitor disclosures across hundreds of firms simultaneously, far faster than any manual workflow.
-            """),
-        ]
-    )
+The chart below shows the distribution of filing types that would be collected
+by the pipeline across a sample of 50 SMEs, illustrating how the scraped data
+can be immediately structured and visualised for credit analysis.
+        """),
+        chart_scraping,
+        mo.md("""
+---
+
+*Why this matters for credit risk*
+
+This pipeline directly complements the Altman Z-Score analysis in the Credit Risk tab.
+The financial data needed to compute Z-Scores — net working capital, total assets,
+retained earnings, and EBIT — is buried inside PDF accounts on Companies House.
+Automating its collection at scale removes the bottleneck that prevents analysts
+from running credit risk models across large numbers of SMEs simultaneously.
+        """),
+    ])
 
     # ── Tab 4: LLM Sentiment Analysis ───────────────────────────────────────────
     tab_llm = mo.vstack(
