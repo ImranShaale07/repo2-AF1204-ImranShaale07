@@ -1,4 +1,4 @@
-
+# =============================================================================
 # Wk07_CompaniesHouse_scraper.py
 # AF1204 Individual Assignment — Imran Shaale
 #
@@ -25,7 +25,7 @@
 # The Marimo WASM browser export does not support Playwright or outbound
 # HTTP requests, which is why the portfolio webpage uses simulated output
 # to illustrate what this pipeline produces.
-
+# =============================================================================
 
 import json
 import time
@@ -333,8 +333,9 @@ def stage3_extract(pdf_df: pd.DataFrame):
     )
 
 
+# =============================================================================
 # Entry point
-
+# =============================================================================
 async def run_pipeline():
     print("=" * 65)
     print("AF1204 Web Scraping Pipeline — Imran Shaale")
