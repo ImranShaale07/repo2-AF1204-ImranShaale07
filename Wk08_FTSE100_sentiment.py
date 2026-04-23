@@ -1,249 +1,292 @@
 
-# Wk08_llm_sentiment.py
-# AF1204 Individual Assignment — Abdullah Majeed
+# Wk08_FTSE100_sentiment.py
+# AF1204 Individual Assignment — Imran Shaale
 #
-# LLM sentiment analysis of FTSE 100 forward-looking statements using the
-# Groq API with few-shot prompting and AI-as-judge validation.
-# Relevant to commodity trading — management sentiment in annual reports
-# signals confidence about supply chains, energy costs, and market conditions.
+# Sentiment classification of FTSE 100 forward-looking statements using
+# the Groq API. Applied to annual report disclosures from UK-listed firms
+# relevant to financial analysis and credit risk assessment.
 #
-# Note: This script requires a local Python environment with a valid
-# Groq API key set as the environment variable GROQ_API_KEY.
-# It cannot run inside the Marimo WASM browser export, which is why the
-# portfolio webpage uses illustrative simulated data to demonstrate the output.
+# Forward-looking statements in annual reports signal management confidence
+# about future revenue, cost pressures, and market conditions. Classifying
+# these at scale — rather than reading them manually — is a core use case
+# for LLMs in financial analysis workflows.
 #
-# To install dependencies:
+# Techniques applied:
+#   - Structured prompt engineering with persona and step-by-step instructions
+#   - Few-shot examples to anchor the model's classification behaviour
+#   - Temperature = 0 for fully deterministic, reproducible outputs
+#   - Pinned model version to prevent classification drift over time
+#   - Retry logic with exponential back-off for API reliability
+#   - AI-as-judge: a second LLM call validates each primary classification
+#
+# HOW TO RUN:
 #   pip install groq pandas
+#   export GROQ_API_KEY=your_key_here   (Mac/Linux)
+#   set GROQ_API_KEY=your_key_here      (Windows)
+#   python3 Wk08_FTSE100_sentiment.py
 #
-# To set your API key (Mac/Linux):
-#   export GROQ_API_KEY=your_key_here
-#
-# To set your API key (Windows):
-#   set GROQ_API_KEY=your_key_here
-
-
+# NOTE: This script requires a valid Groq API key and a local Python
+# environment. It cannot run inside the Marimo WASM browser export,
+# which is why the portfolio webpage uses illustrative simulated scores
+# to demonstrate what this pipeline produces.
+# =============================================================================
+ 
 import os
 import json
 import time
-
+ 
 import pandas as pd
 from groq import Groq
-
-# ── Settings ──────────────────────────────────────────────────────────────────
-MODEL = "llama-3.1-8b-instant"   # Pinned model version to avoid drift
-TEMPERATURE = 0                   # Deterministic outputs
-TOP_P = 1                         # Full token pool, overridden by temperature
-MAX_RETRIES = 3                   # Retry logic for API failures
-RETRY_DELAY = 2                   # Seconds between retries
-
-# Initialise Groq client using environment variable (never hardcode API keys)
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-
-# ── Sample forward-looking statements from FTSE 100 annual reports ─────────────
-statements = [
+ 
+# ── Model configuration ────────────────────────────────────────────────────────
+GROQ_MODEL = "llama-3.1-8b-instant"  # Pinned — prevents output drift
+TEMPERATURE = 0                        # Fully deterministic outputs
+TOP_P = 1                              # Not active when temperature = 0
+MAX_TOKENS_PER_CALL = 60
+API_RETRY_LIMIT = 3
+RETRY_BACKOFF_SECONDS = 2
+ 
+# Load API key from environment — never hardcode credentials
+groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+ 
+# ── Source statements ──────────────────────────────────────────────────────────
+# Forward-looking statements drawn from FTSE 100 annual reports.
+# These represent the kind of disclosures a credit analyst would classify
+# when assessing counterparty sentiment across a portfolio of firms.
+ftse100_statements = [
     {
+        "ticker": "TSCO",
         "company": "Tesco",
+        "sector": "Consumer Staples",
         "text": (
-            "We are confident in our ability to grow market share and deliver "
-            "strong returns to shareholders over the medium term, supported by "
-            "our continued investment in price, value, and customer experience."
+            "We are confident in our ability to grow volume, improve value perception, "
+            "and deliver strong and sustainable shareholder returns over the medium term, "
+            "supported by disciplined investment in our customer proposition."
         ),
     },
     {
+        "ticker": "VOD",
         "company": "Vodafone",
+        "sector": "Telecommunications",
         "text": (
-            "We expect trading conditions to remain broadly stable, with modest "
-            "growth anticipated across our key European and African markets as "
-            "we continue to execute our transformation programme."
+            "We expect organic service revenue growth to remain broadly stable, "
+            "with modest improvement anticipated in our key European markets as we "
+            "continue to execute our cost and efficiency transformation."
         ),
     },
     {
+        "ticker": "BP",
         "company": "BP",
+        "sector": "Energy",
         "text": (
-            "The energy transition presents significant headwinds for our upstream "
-            "portfolio, and we are taking a cautious approach to capital allocation "
-            "as we rebalance our business toward lower-carbon energy sources."
+            "The accelerating energy transition and regulatory environment present "
+            "material headwinds to our upstream portfolio, and we have adopted a "
+            "more cautious stance on capital deployment as we reshape our business."
         ),
     },
     {
+        "ticker": "HSBA",
         "company": "HSBC",
+        "sector": "Banking",
         "text": (
-            "We are well positioned to capture growth across our Asia-Pacific "
-            "franchise and wealth management business, and we remain optimistic "
-            "about our ability to deliver on our strategic targets."
+            "We remain optimistic about growth in our Asia-Pacific wealth and "
+            "commercial banking franchises, and we are confident in our ability "
+            "to deliver on our strategic return targets over the coming period."
         ),
     },
     {
+        "ticker": "ULVR",
         "company": "Unilever",
+        "sector": "Consumer Goods",
         "text": (
-            "Our underlying sales growth remains in line with our medium-term "
-            "guidance, and we continue to make progress on our sustainability "
-            "commitments while managing cost pressures across our supply chain."
+            "Underlying sales growth is tracking in line with our medium-term guidance "
+            "range, and we continue to make steady progress on our operational efficiency "
+            "programme while navigating ongoing input cost pressures."
         ),
     },
 ]
-
-
+ 
+ 
 # =============================================================================
-# Prompt Engineering — Structured prompt with few-shot examples
+# Prompt construction
 # =============================================================================
-def build_prompt(statement_text: str) -> str:
+def build_classification_prompt(statement: str) -> str:
     """
-    Build a structured prompt following the Week 8 template:
-    persona, instructions, constraints, few-shot examples, output format.
+    Construct a structured prompt following the Week 8 template.
+    Includes: persona, numbered instructions, hard constraints,
+    three few-shot examples, and a strict JSON output format.
     """
-    return f"""You are a financial analyst specialising in sentiment analysis of 
-corporate disclosures for commodity market research. Your task is to classify 
-the sentiment of a forward-looking statement from a FTSE 100 annual report.
-
+    return f"""You are a senior credit analyst at a UK investment bank, specialising
+in the analysis of corporate forward-looking statements for counterparty risk assessment.
+ 
+Your task is to classify the sentiment of a forward-looking statement extracted from
+a FTSE 100 annual report.
+ 
 Instructions:
-1. Read the statement carefully.
-2. Classify the overall sentiment as exactly one of: Optimistic, Neutral, or Cautious.
-3. Assign a score: Optimistic = 1, Neutral = 0, Cautious = -1.
-4. Return ONLY a JSON object with keys "label" and "score". No other text.
-
+1. Read the statement carefully and assess its overall tone.
+2. Classify the sentiment as exactly one of: Optimistic, Neutral, or Cautious.
+3. Assign the corresponding score: Optimistic = 1, Neutral = 0, Cautious = -1.
+4. Output ONLY a valid JSON object with two keys: "label" and "score".
+ 
 Constraints:
-- Do not explain your reasoning.
-- Do not include any text outside the JSON object.
-- Use exactly the labels: Optimistic, Neutral, or Cautious.
-
+- Do not include any explanation, commentary, or text outside the JSON object.
+- Use only these exact label strings: Optimistic, Neutral, Cautious.
+- If genuinely ambiguous, classify as Neutral.
+ 
 Few-shot examples:
-
-Statement: "We are highly confident in our ability to deliver record revenue 
-growth and expand our margins significantly in the coming financial year."
+ 
+Input: "We are highly confident in delivering record earnings growth and expanding
+our market share across all divisions in the financial year ahead."
 Output: {{"label": "Optimistic", "score": 1}}
-
-Statement: "Our results are in line with market expectations and we continue 
-to monitor the macroeconomic environment carefully."
+ 
+Input: "Performance in the period was in line with market expectations, and we
+continue to monitor the operating environment closely as conditions evolve."
 Output: {{"label": "Neutral", "score": 0}}
-
-Statement: "Significant uncertainty in global commodity markets and rising 
-input costs have led us to revise our outlook downward for the year ahead."
+ 
+Input: "Significant macroeconomic headwinds and rising input costs have led the
+board to adopt a cautious outlook and revise full-year guidance downward."
 Output: {{"label": "Cautious", "score": -1}}
-
-Now classify this statement:
-"{statement_text}"
+ 
+Now classify the following statement:
+"{statement}"
 Output:"""
-
-
+ 
+ 
 # =============================================================================
-# Groq API call with retry logic
+# Primary classification with retry logic
 # =============================================================================
-def classify_sentiment(statement_text: str, retries: int = MAX_RETRIES) -> dict:
+def classify(statement_text: str) -> dict:
     """
-    Call the Groq API to classify sentiment with retry logic and back-off.
-    Returns a dict with keys: label, score.
+    Submit the statement to the Groq API and parse the JSON response.
+    Retries up to API_RETRY_LIMIT times with exponential back-off on failure.
     """
-    prompt = build_prompt(statement_text)
-
-    for attempt in range(1, retries + 1):
+    prompt = build_classification_prompt(statement_text)
+ 
+    for attempt in range(1, API_RETRY_LIMIT + 1):
         try:
-            response = client.chat.completions.create(
-                model=MODEL,
+            resp = groq_client.chat.completions.create(
+                model=GROQ_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=TEMPERATURE,
                 top_p=TOP_P,
-                max_tokens=50,
+                max_tokens=MAX_TOKENS_PER_CALL,
             )
-            raw = response.choices[0].message.content.strip()
-
-            # Parse JSON response
-            result = json.loads(raw)
-            assert result["label"] in ["Optimistic", "Neutral", "Cautious"]
-            assert result["score"] in [1, 0, -1]
-            return result
-
-        except Exception as e:
-            print(f"  [Attempt {attempt}/{retries}] Error: {e}")
-            if attempt < retries:
-                time.sleep(RETRY_DELAY * attempt)
+            raw_output = resp.choices[0].message.content.strip()
+            parsed = json.loads(raw_output)
+ 
+            # Validate response structure
+            assert parsed["label"] in ["Optimistic", "Neutral", "Cautious"]
+            assert parsed["score"] in [1, 0, -1]
+            return parsed
+ 
+        except Exception as err:
+            print(f"    [Attempt {attempt}/{API_RETRY_LIMIT}] Error: {err}")
+            if attempt < API_RETRY_LIMIT:
+                wait = RETRY_BACKOFF_SECONDS * attempt
+                print(f"    Retrying in {wait}s...")
+                time.sleep(wait)
             else:
-                print("  [Failed] Returning default Neutral classification.")
+                print("    Max retries reached. Defaulting to Neutral.")
                 return {"label": "Neutral", "score": 0}
-
-
+ 
+ 
 # =============================================================================
-# AI-as-Judge — Second model validates first model's classifications
+# AI-as-judge validation
 # =============================================================================
-def validate_with_judge(statement_text: str, primary_label: str) -> bool:
+def judge_classification(statement_text: str, proposed_label: str) -> bool:
     """
-    Use a second LLM call to validate the primary classification.
-    Returns True if the judge agrees, False otherwise.
+    Send a second prompt to the model asking it to validate the primary
+    classification. Returns True if the judge agrees, False otherwise.
+ 
+    This technique reduces hallucination risk by catching cases where the
+    primary model has clearly misclassified a statement.
     """
-    judge_prompt = f"""You are a senior commodity market analyst reviewing a 
-junior analyst's sentiment classification of a corporate disclosure.
-
+    validation_prompt = f"""You are a senior credit analyst reviewing a classification
+made by a junior analyst.
+ 
 Statement: "{statement_text}"
-Classification given: {primary_label}
-
-Do you agree with this classification? Reply with ONLY "Yes" or "No"."""
-
+Proposed classification: {proposed_label}
+ 
+Do you agree this classification is correct?
+Reply with ONLY the word "Yes" or the word "No"."""
+ 
     try:
-        response = client.chat.completions.create(
-            model=MODEL,
-            messages=[{"role": "user", "content": judge_prompt}],
+        resp = groq_client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[{"role": "user", "content": validation_prompt}],
             temperature=0,
             top_p=1,
             max_tokens=5,
         )
-        answer = response.choices[0].message.content.strip().lower()
-        return answer.startswith("yes")
+        verdict = resp.choices[0].message.content.strip().lower()
+        return verdict.startswith("yes")
     except Exception:
-        return True
-
-
+        return True  # Default to accepting if judge call fails
+ 
+ 
 # =============================================================================
 # Main pipeline
-#
-def main():
-    print("=" * 60)
-    print("AF1204 LLM Sentiment Analysis — Abdullah Majeed")
+# =============================================================================
+def run_sentiment_pipeline():
+    print("=" * 65)
+    print("AF1204 LLM Sentiment Analysis — Imran Shaale")
     print("Target: FTSE 100 Forward-Looking Statements")
-    print("Use case: Commodity trading — ESG and supply chain sentiment")
-    print(f"Model: {MODEL} | Temperature: {TEMPERATURE} | Top-P: {TOP_P}")
-    print("=" * 60)
-
-    results = []
-
-    for item in statements:
+    print("Purpose: Counterparty sentiment classification for credit analysis")
+    print(f"Model: {GROQ_MODEL}  |  Temperature: {TEMPERATURE}  |  Top-P: {TOP_P}")
+    print("=" * 65)
+ 
+    output_rows = []
+ 
+    for item in ftse100_statements:
         company = item["company"]
+        ticker = item["ticker"]
+        sector = item["sector"]
         text = item["text"]
-        print(f"\nClassifying: {company}")
-
-        # Primary classification
-        primary = classify_sentiment(text)
-        print(f"  Primary classification: {primary['label']} ({primary['score']})")
-
-        # AI-as-judge validation
-        agreed = validate_with_judge(text, primary["label"])
-        print(f"  Judge validation: {'Agreed' if agreed else 'Disagreed'}")
-
-        # If judge disagrees, reclassify
-        if not agreed:
-            print("  Reclassifying after judge disagreement...")
-            primary = classify_sentiment(text)
-            print(f"  Revised classification: {primary['label']} ({primary['score']})")
-
-        results.append({
+ 
+        print(f"\nProcessing: {company} ({ticker}) — {sector}")
+ 
+        # Step 1: Primary classification
+        primary_result = classify(text)
+        label = primary_result["label"]
+        score = primary_result["score"]
+        print(f"  Primary classification: {label} ({score})")
+ 
+        # Step 2: AI-as-judge validation
+        judge_agrees = judge_classification(text, label)
+        print(f"  Judge validation: {'Agreed' if judge_agrees else 'DISAGREED — reclassifying'}")
+ 
+        # Step 3: Reclassify if judge disagrees
+        if not judge_agrees:
+            primary_result = classify(text)
+            label = primary_result["label"]
+            score = primary_result["score"]
+            print(f"  Revised classification: {label} ({score})")
+ 
+        output_rows.append({
+            "Ticker": ticker,
             "Company": company,
-            "Statement": text[:80] + "...",
-            "Label": primary["label"],
-            "Sentiment_Score": primary["score"],
-            "Judge_Agreed": agreed,
+            "Sector": sector,
+            "Label": label,
+            "Sentiment_Score": score,
+            "Judge_Agreed": judge_agrees,
+            "Statement_Preview": text[:100] + "...",
         })
-
-        time.sleep(0.5)
-
-    # Save results
-    df = pd.DataFrame(results)
-    df.to_csv("sentiment_results.csv", index=False)
-
-    print("\n" + "=" * 60)
-    print("Results:")
-    print(df[["Company", "Label", "Sentiment_Score", "Judge_Agreed"]].to_string(index=False))
-    print("\nResults saved to sentiment_results.csv")
-    print("=" * 60)
-
-
+ 
+        time.sleep(0.4)  # Rate limit courtesy delay
+ 
+    # Save and display results
+    results_df = pd.DataFrame(output_rows)
+    results_df.to_csv("ftse100_sentiment_results.csv", index=False)
+ 
+    print("\n" + "=" * 65)
+    print("Classification Results:")
+    print(
+        results_df[["Company", "Sector", "Label", "Sentiment_Score", "Judge_Agreed"]]
+        .to_string(index=False)
+    )
+    print("\nFull results saved to ftse100_sentiment_results.csv")
+    print("=" * 65)
+ 
+ 
 if __name__ == "__main__":
-    main()
+    run_sentiment_pipeline()
